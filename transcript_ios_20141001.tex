@@ -23,7 +23,8 @@
 }
 
 \par{
-	\begin{center}
+	\begin{figure}[!htb]
+		\centering
 		\begin{tikzpicture}[scale = 1.0]
 			\draw (0, 2) rectangle (2, 4) node[pos = 0.5]{\textit{Tool}};
 
@@ -39,7 +40,9 @@
 			\node (correctnessgenerated) at (5, 4.5) [text width = 3cm]{\textit{Check correctness and generate code}};
 			\node (executecorrectness) at (5, 1.5) [text width = 3cm]{\textit{Executes and checks correctness}};
 		\end{tikzpicture}
-	\end{center}
+		\caption{Process of establishing correctness.}
+		\label{fig:processcorrectness}
+	\end{figure}
 }
 
 \par{
@@ -66,7 +69,8 @@
 }
 
 \par{
-	\begin{center}
+	\begin{figure}[!htb]
+		\centering
 		\begin{tikzpicture}[scale = 1.0]
 			\draw (1, 4) rectangle (9, 8);
 			\node (unreachable) at (5, 7.75) {\textit{Unreachable/Unneeded}};
@@ -89,7 +93,9 @@
 			\draw[->] (9.5, 6.25) -- (8.25, 6.25);
 			\node (reachableunneeded) at (12.25, 6.25) [text width = 5cm]{\textit{Reachable but unneeded. Overapproximation of live objects as figuring out if an object is live or dead is impossible in general. Reachable memory leaks occur in this area.}};
 		\end{tikzpicture}
-	\end{center}
+		\caption{Unreachable, reachable and needed set of a program.}
+		\label{fig:reachablesetprogram}
+	\end{figure}
 }
 
 \par{
@@ -97,9 +103,10 @@
 	General runtime complexity of a garbage collector: the size of the heap.
 }
 
+\subsection*{Multicore}
+
 \par{
 	\noindent
-	\textbf{Multicore} \newline
 	Amdahl's Law: $P$ represents program parallelism on $N$ cores
 	\parskip0pt\begin{itemize}
 		\item{$S(N) = N$ if $P = 100\%$. This is ideal multicore scalability.}
@@ -108,7 +115,8 @@
 }
 
 \par{
-	\begin{center}
+	\begin{figure}[!htb]
+		\centering
 		\begin{tikzpicture}[scale = 1.9]
 			% axes
 			\draw[->] (-0.1, 0) -- (5, 0) node[right] {\textit{Number of cores}};
@@ -153,17 +161,21 @@
 			\draw[blue] (6, 3.5) -- (6.25, 3.5) node[black, right] {\textit{real (better)}};
 			\draw[green] (6, 3) -- (6.25, 3) node[black, right] {\textit{real (worse)}};
 		\end{tikzpicture}
-	\end{center}
+		\caption{Amdahl's law plot.}
+		\label{fig:amdahllawplot}
+	\end{figure}
 }
+
+\subsection*{Sequential vs. Parallelized Code}
 
 \par{
 	\noindent
-	\textbf{Sequential vs. Parallelized Code} \newline
 	The bottleneck of parallelized is the memory bus. It is limiting execution even if a problem can be perfectly parallelized without any side effects. Thus a parallelization factor of 100\% is infeasible. Any shared resource at any level of an architecture creates a limitation.
 }
 
 \par{
-	\begin{center}
+	\begin{figure}[!htb]
+		\centering
 		\begin{tikzpicture}
 			\draw (1, 0) rectangle (4, 1) node[pos = 0.5]{\textit{Memory}};
 			\draw (0, 3) rectangle (2, 4) node[pos = 0.5]{\textit{Core$_1$}};
@@ -175,5 +187,7 @@
 			\draw[red, densely dotted] (2.5, 2) ellipse (2 and 0.5);
 			\draw[red, <-] (4.5, 2) -- (5, 2) node[black, right]{\textit{Limitation}};
 		\end{tikzpicture}
-	\end{center}	
+		\caption{Bottleneck of parallelized code.}
+		\label{fig:parallelismbottleneck}
+	\end{figure}	
 }
