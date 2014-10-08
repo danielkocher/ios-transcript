@@ -263,16 +263,311 @@
 
 \subsection*{Register Instructions}
 
-\subsubsection*{F1}
+\subsubsection*{Arithmetic Instructions}
 
 \par{
-	\noindent
-	\texttt{ADDI a, b, c}: Add immediate, \texttt{c} is data (a constant) \newline
-	\texttt{reg[a] := reg[b] + c; pc := pc + 4;}
+    \noindent
+    \textbf{F1}
+}
+
+\par{
+    \noindent
+    \begin{tabular}{llll}
+        \hline
+        Instruction 			& Semantics 							& Additional information 								\\
+        \hline
+        \hline
+        \texttt{ADDI a, b, c}   &   \texttt{reg[a]:=reg[b]+c;}          &   Add immediate                                       \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{c} is data (a constant)                     \\
+        \texttt{SUBI a, b, c}   &   \texttt{reg[a]:=reg[b]-c;}          &   Substract immediate                                 \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{c} is data (a constant)                     \\
+        \texttt{MULI a, b, c}   &   \texttt{reg[a]:=reg[b]*c;}          &   Multiply immediate                                  \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{c} is data (a constant)                     \\
+        \texttt{DIVI a, b, c}   &   \texttt{reg[a]:=reg[b]/c;}          &   Divide immediate                                    \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{c} is data (a constant)                     \\
+        \texttt{MODI a, b, c}   &   \texttt{reg[a]:=reg[b]\%c;}         &   Modulo immediate                                    \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{c} is data (a constant)                     \\
+        \texttt{CMPI a, b, c}   &   \texttt{reg[a]:=reg[b]-c;}          &   Compare immediate                                   \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{c} is data (a constant)                     \\
+                                &                                       &   \texttt{reg[a]==0 \textbf{if} reg[b]==c}            \\
+                                &                                       &   \texttt{reg[a]>=0 \textbf{if} reg[b]>=c}            \\
+                                &                                       &   \texttt{reg[a]>0 \textbf{if} reg[b]>c}              \\
+                                &                                       &   \texttt{reg[a]=<0 \textbf{if} reg[b]=<c}            \\
+                                &                                       &   \texttt{reg[a]<0 \textbf{if} reg[b]<c}              \\
+                                &                                       &   \texttt{reg[a]!=0 \textbf{if} reg[b]!=c}            \\
+        \hline
+    \end{tabular}
+}
+\clearpage
+
+\par{
+    \noindent
+    \textbf{F2}
+}
+
+\par{
+    \noindent
+    \begin{tabular}{llll}
+        \hline
+        Instruction 			& Semantics 							& Additional information 								\\
+        \hline
+        \hline
+        \texttt{ADD a, b, c}    &   \texttt{reg[a]:=reg[b]+reg[c];}     &   Add                                                 \\
+                                &   \texttt{pc:=pc+4;}                  &   Register addressing \texttt{reg[c]}                 \\
+        \texttt{SUB a, b, c}    &   \texttt{reg[a]:=reg[b]-reg[c];}     &   Substract                                           \\
+                                &   \texttt{pc:=pc+4;}                  &   Register addressing \texttt{reg[c]}                 \\
+        \texttt{MUL a, b, c}    &   \texttt{reg[a]:=reg[b]*reg[c];}     &   Multiply                                            \\
+                                &   \texttt{pc:=pc+4;}                  &   Register addressing \texttt{reg[c]}                 \\
+        \texttt{DIV a, b, c}    &   \texttt{reg[a]:=reg[b]/reg[c];}     &   Divide                                              \\
+                                &   \texttt{pc:=pc+4;}                  &   Register addressing \texttt{reg[c]}                 \\
+        \texttt{MOD a, b, c}    &   \texttt{reg[a]:=reg[b]\%reg[c];}    &   Modulo                                              \\
+                                &   \texttt{pc:=pc+4;}                  &   Register addressing \texttt{reg[c]}                 \\
+        \texttt{CMP a, b, c}    &   \texttt{reg[a]:=reg[b]-reg[c];}     &   Compare                                             \\
+                                &   \texttt{pc:=pc+4;}                  &   Register addressing \texttt{reg[c]}                 \\
+                                &                                       &   \texttt{reg[a]==0 \textbf{if} reg[b]==reg[c]}       \\
+                                &                                       &   \texttt{reg[a]>=0 \textbf{if} reg[b]>=reg[c]}       \\
+                                &                                       &   \texttt{reg[a]>0 \textbf{if} reg[b]>reg[c]}         \\
+                                &                                       &   \texttt{reg[a]=<0 \textbf{if} reg[b]=<reg[c]}       \\
+                                &                                       &   \texttt{reg[a]<0 \textbf{if} reg[b]<reg[c]}         \\
+                                &                                       &   \texttt{reg[a]!=0 \textbf{if} reg[b]!=reg[c]}       \\
+        \hline
+    \end{tabular}   
+}
+
+\subsubsection*{Register Allocation Problem}
+
+\par{
+    \noindent
+    Registers have to be used in order to execute an instruction. There are 29 registers (in theory) to use. In practice, at least in this course, less registers can be used because some registers are reserved for special purposes (stack pointer, heap pointer, globals pointer, frame pointer, \ldots). It must be guaranteed that these will not be used and furthermore already allocated registers must not be used for an instruction.
+}
+\clearpage
+
+\par{
+    \noindent
+    \underline{Examples:}
+    \par{
+        \noindent
+        \begin{tabular}{lll}
+            \hline
+            C Code                  &   Instructions                &    Additional information                             \\
+            \hline
+            \hline
+            \rowcolor{blue!25}                
+            \texttt{1 + 2;}         &   \texttt{ADDI 1, 0, 1}       &   First, naive solution                               \\
+            \rowcolor{blue!25}
+                                    &   \texttt{ADDI 2, 0, 2}       &                                                       \\
+            \rowcolor{blue!25}
+                                    &   \texttt{ADD 1, 1, 2}        &                                                       \\
+            \rowcolor{green!25}
+            \texttt{1 + 2;}         &   \texttt{ADDI 1, 0, 1}       &   Second, better solution                             \\
+            \rowcolor{green!25}
+                                    &   \texttt{ADDI 1, 1, 2}       &                                                       \\
+            \rowcolor{red!25}
+            \texttt{1 + 2;}         &   \texttt{ADDI 1, 0, 3}       &   Third, best solution                                \\
+            \rowcolor{red!25}
+                                    &                               &   Constant folding                                    \\   
+            \hline
+            \texttt{if(1 < 2)}      &   \texttt{ADDI 1, 0, 1}       &                                                       \\
+                                    &   \texttt{ADDI 2, 0, 2}       &                                                       \\
+                                    &   \texttt{CMP 1, 0, 2}        &                                                       \\
+                                    &   \texttt{BGE 1, 0, <loc>}    &  \texttt{<loc>} represents the line of code in the    \\
+                                    &                               &   assembly code the CPU continues with                \\
+            \hline
+        \end{tabular}
+    }    
+}
+
+\subsection*{Memory Instructions}
+
+\par{
+    \noindent
+    \textbf{F1}
+}
+
+\par{
+    \noindent
+    \begin{tabular}{llll}
+        \hline
+        Instruction 			& Semantics 							& Additional information 								\\
+        \hline
+        \hline
+        \texttt{LDW a, b, c}    &   \texttt{reg[a]:=mem[(reg[b]+c)/4];} &   Load word (from memory)                             \\
+                                &   \texttt{pc:=pc+4;}                  &   Register-relative addressing                        \\
+        \texttt{STW a, b, c}    &   \texttt{mem[(reg[b]+c)/4]:=reg[a];} &   Store word (into memory)                            \\
+                                &   \texttt{pc:=pc+4;}                  &   Register-relative addressing                        \\
+        \texttt{POP a, b, c}    &   \texttt{reg[a]:=mem[reg[b]/4];}     &   Pop (from stack)                                    \\
+                                &   \texttt{reg[b]:=reg[b]+c;}          &   \texttt{c}: size of the popped chunk                \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{reg[b]}: contains stack pointer             \\
+        \texttt{PSH a, b, c}    &   \texttt{reg[b]:=reg[b]-c;}          &   Push (onto stack)                                   \\
+                                &   \texttt{mem[reg[b]/4]:=reg[a];}     &   \texttt{c}: size of the popped chunk                \\
+                                &   \texttt{pc:=pc+4;}                  &   \texttt{reg[b]}: contains stack pointer             \\
+        \hline
+    \end{tabular}   
+}
+
+\par{
+    \noindent
+    The stack grows from high to low addresses (top-down). In the \texttt{POP} and \texttt{PSH} instructions, \texttt{reg[b]:=reg[b]+c} and \texttt{reg[b]:=reg[b]-c} represent the actual removal of the element from the stack, respectively. In case of the C* language \texttt{c} will always be \texttt{4} because only a single type (\textbf{\texttt{int}}) exists in this particular language. In general \texttt{c} is the amount of data you want to remove from the stack.
+}
+
+\par{
+    \noindent
+    Without register-relative addressing, which is a concrete form of indirect addressing, you could only talk about as many memory cells as your program uses. The only way to get the same expressivity as with register-relative addressing is to write self-modifying code.
+}
+\clearpage
+
+\par{
+    \begin{figure}[!htb]
+        \centering
+        \begin{tikzpicture}
+            \draw (2, 1.5) rectangle (6, 9.5);
+            
+            \node at (6.5, 1.5) {\texttt{0}};
+            \node at (6.5, 9.5) {\texttt{max}};
+
+            \draw (2, 8.5) -- (6, 8.5);
+            \node at (4, 9) {\texttt{Stack}};
+            \draw[->] (4, 8.5) -- (4, 8.25);
+
+            \draw (2, 3.5) -- (6, 3.5);
+            \node at (4, 2.5) {\texttt{Code/Text}};
+            
+            \draw (2, 4.5) -- (6, 4.5);
+            \node at (4, 4) {\texttt{Globals/Strings}};
+
+            \draw (2, 5.5) -- (6, 5.5);
+            \node at (4, 5) {\texttt{Heap}};
+            \draw[->] (4, 5.5) -- (4, 5.75);
+
+            \draw[<-] (2, 8.5) -- (1.5, 8.5) node[left]{\texttt{R30, SP}};
+            \draw[<-] (2, 4.5) -- (1.5, 4.5) node[left]{\texttt{R28, GP}};
+
+			
+
+            \node[block] at (4, 0.5) [text width = 4.5cm]{\texttt{SP \ldots Stack pointer GP \ldots Global pointer}};
+        \end{tikzpicture}
+        \caption{Memory layout when executing a program}
+        \label{fig:memorylayout}
+    \end{figure}
+}
+
+\par{
+    \noindent
+    \underline{Examples:}
+    \par{
+        \noindent
+        \begin{tabular}{lll}
+            \hline
+            C Code                  &   Instructions                &    Additional information                         			\\
+            \hline
+            \hline
+            \rowcolor{blue!25}                
+            \texttt{int x;}         &   \texttt{LDW 1, 28, -4}      &   \texttt{R1 := x}                               				\\
+            \rowcolor{blue!25}
+            \texttt{x = x + 1;}		&   \texttt{ADDI 2, 0, 1}       &   \texttt{R2 := 1}                                            \\
+            \rowcolor{blue!25}
+                                    &   \texttt{ADD 1, 1, 2}        &   \texttt{R1 := R1 + R2}                                    	\\
+			\rowcolor{blue!25}
+                                    &   \texttt{STW 1, 28, -4}      &   \texttt{mem[x] = R1}                                       	\\
+            \rowcolor{green!25}
+            \texttt{*x + 1;}        &   \texttt{LDW 1, 28, -4}      &   \texttt{R1 := x}                             				\\
+            \rowcolor{green!25}
+                                    &   \texttt{LDW 1, 1, 0}       	&   \texttt{R1 := mem[R1 + 0]}                               	\\
+			\rowcolor{green!25}
+                                    &   \texttt{ADDI 2, 0, 1}       &   \texttt{R2 := 1}                                        	\\
+			\rowcolor{green!25}
+                                    &   \texttt{ADD 1, 1, 2}       	&	\texttt{R1 := R1 + R2}                   					\\
+            \rowcolor{red!25}
+            \texttt{*(x + 1);}     	&   \texttt{LDW 1, 28, -4}      &   \texttt{R1 := x}                                			\\
+            \rowcolor{red!25}
+                                    &   \texttt{ADDI 2, 0, 4} 		&   \texttt{R2 := 0 + 4}, (4 because it's an address)			\\   
+			\rowcolor{red!25}
+                                    &   \texttt{ADD 1, 1, 2} 		&   \texttt{R1 := R1 + R2}										\\
+			\rowcolor{red!25}
+                                    &   \texttt{LDW 1, 1, 0} 		&   \texttt{R1 := mem[R1 + 0]}           						\\
+			\rowcolor{red!25}
+									&								&	\texttt{*(x + i)} is equivalent to \texttt{x[i]}			\\
+            \hline
+        \end{tabular}
+    }    
 }
 
 \par{
 	\noindent
-	\texttt{SUBI a, b, c}: Subtract immediate \newline
-	\texttt{reg[a] := reg[b] - c; pc := pc + 4;}
+	When dealing with \texttt{*(x + 1)}, the type of \texttt{x} has to be known as well as its size in the memory. The size of \texttt{x} in the memory determines the offset which is added to the address of \texttt{x}. In case of the C* language this value is always \texttt{4} because there is only one type and no support for composed types (\texttt{struct}). Nevertheless, the size of the type needs to be added in general. \newline
+	Formula to compute \texttt{*(x + i) = x[i]}: \texttt{x} + \texttt{\textbf{sizeof}(x)} * \texttt{i}.
+}
+
+\subsection*{Control Instructions}
+
+\par{
+    \noindent
+    \textbf{F1}
+}
+
+\par{
+    \noindent
+    \begin{tabular}{llll}
+        \hline
+        Instruction 			& Semantics 							& Additional information 								\\
+        \hline
+        \hline
+        \texttt{BEQ a, c}    	&   \texttt{if(reg[a]==0) pc:=pc+c*4;} 	&   Branch on equal to zero                            	\\
+                                &   \texttt{else pc:=pc+4;}             &  	Conditional branch, pc-relative						\\
+        \texttt{BGE a, c}    	&   \texttt{if(reg[a]>=0) pc:=pc+c*4;} 	&   Branch on greater than or equal to zero             \\
+                                &   \texttt{else pc:=pc+4;}             &  	Conditional branch, pc-relative						\\
+        \texttt{BGT a, c}    	&   \texttt{if(reg[a]>0) pc:=pc+c*4;} 	&   Branch on greater than to zero                      \\
+                                &   \texttt{else pc:=pc+4;}             &  	Conditional branch, pc-relative						\\
+        \texttt{BLE a, c}    	&   \texttt{if(reg[a]<=0) pc:=pc+c*4;} 	&   Branch on less than or equal to zero                \\
+                                &   \texttt{else pc:=pc+4;}             &  	Conditional branch, pc-relative						\\
+		\texttt{BLT a, c}    	&   \texttt{if(reg[a]<0) pc:=pc+c*4;} 	&   Branch on less than to zero                        	\\
+                                &   \texttt{else pc:=pc+4;}             &  	Conditional branch, pc-relative						\\
+        \texttt{BNE a, c}    	&   \texttt{if(reg[a]!=0) pc:=pc+c*4;} 	&   Branch on not equal to zero                         \\
+                                &   \texttt{else pc:=pc+4;}             &  	Conditional branch, pc-relative						\\
+        \texttt{BR c}    		&   \texttt{pc:=pc+c*4;} 				&   Branch (unconditional)								\\
+        \texttt{BSR c}    		&   \texttt{reg[31]:=pc+4;} 			&   Branch to subroutine (unconditional)                \\
+                                &   \texttt{pc:=pc+c*4;}             	&  	Tthe link register (\texttt{R31}) is saved to be	\\
+								&										&	able to return to the correct instruction			\\
+        \hline
+    \end{tabular}   
+}
+
+\par{
+    \noindent
+    \textbf{F2}
+}
+
+\par{
+    \noindent
+    \begin{tabular}{llll}
+        \hline
+        Instruction 	& Semantics 				& Additional information		\\
+        \hline
+        \hline
+        \texttt{RET c}	&   \texttt{pc:=reg[c];}	&	\texttt{c} = \texttt{R31}	\\
+        \hline
+    \end{tabular}   
+}
+
+\par{
+    \noindent
+    \textbf{F3}
+}
+
+\par{
+    \noindent
+    \begin{tabular}{llll}
+        \hline
+        Instruction 	& Semantics 				& Additional information		\\
+        \hline
+        \hline
+        \texttt{JSR c}	&   \texttt{reg[31]:=pc+4;}	&	\texttt{c} = \texttt{R31}	\\
+						&	\texttt{pc:=c;}			&	absolute addressing			\\
+        \hline
+    \end{tabular}   
+}
+
+\par{
+	\noindent
+	All branches (conditional as well as unconditional) are pc-relative. The multiplication of \texttt{c} by \texttt{4} is because the words in the memory are byte-addressed. Branches are useful (especially because they operate pc-relative) because you generate so-called \textit{relocatable code}. \textit{Relocatable code} can be moved in memory anywhere and will not change its behavior because every address is computed relative to the program counter. The drawback of branches is the restriction of the addressable space: there may be more memory than you can use with branches. The solution is absolute addressing used by the F3 format. The F3 format allows you to address a range of $2^{26}$.
 }
