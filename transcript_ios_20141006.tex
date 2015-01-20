@@ -288,8 +288,9 @@
 		\noindent\underline{Numeric representation}
 		\par{
 			\noindent
-			unary: $\underbrace{||||| ||||| ||||| |}_{16}$, binary: $\underbrace{1 0000}_{16}$, octal: $\underbrace{20}_{16}$, decimal: $\underbrace{16}_{16}$, hexadecimal: $\underbrace{10}_{16}$ \newline
-			Exponential reduction from unary to binary representation: $1 + n = \lfloor log_2 n\rfloor + 1$
+			unary: $\underbrace{||||| ||||| ||||| |0}_{16}$, binary: $\underbrace{1 0000}_{16}$, octal: $\underbrace{20}_{16}$, decimal: $\underbrace{16}_{16}$, hexadecimal: $\underbrace{10}_{16}$ \newline
+			Exponential reduction from unary to binary representation: $1 + n = \lfloor log_2 n\rfloor + 1$ \newline
+			The main difference ist the denseness of the representations.
 		}
 	}
 	\par{
@@ -300,6 +301,11 @@
 		\indent\texttt{else} \newline
 		\indent\indent\texttt{return (fib($n - 1$) + fib($n - 2$));} \newline
 		\texttt{\}}
+	}
+	\par{
+		\noindent
+		This implementation has a worst-case time complexity of $O(2^n)$. Thus, \texttt{fib(7)} will terminate correctly but something like \texttt{fib(1024)} will not terminate correctly on most systems. \newline
+		There exists another implementation of the Fibonacci numbers using dynamic programming. This implementation has a logarithmic worst-case time complexity.
 	}
 	\par{\noindent $log(n) \cdot log_d(2) = log_d(n)$}
 	\clearpage
