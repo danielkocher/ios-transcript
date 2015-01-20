@@ -302,4 +302,82 @@
 		\texttt{\}}
 	}
 	\par{\noindent $log(n) \cdot log_d(2) = log_d(n)$}
+	\clearpage
+	\par{
+		\noindent\underline{From Turing to digital:}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\node[text width = 3.4cm] at (6, 0) (program_data) {Program = data, Data = addresses};
+				\node[above left = 1 and 2 of program_data] (von_neumann) {Von Neumann architecture};
+				\node[above = 2 of program_data] (stored_program_computer) {Stored program computer};
+				\node[above = 1 of von_neumann] (universal_turing_machine) {Universal Turing Machine};
+				\node[above right = 2 and 1 of universal_turing_machine] (algorithm) {Algorithm};
+				\node[above = 2 of universal_turing_machine] (turing_machine) {Turing Machine};
+
+				\draw[<->, >=stealth, thick] (program_data.west) -- (von_neumann.south);
+				\draw[<-, >=stealth, thick] (program_data.north) -- node[right] {\textit{memory}} (stored_program_computer.south);
+				\draw[<-, >=stealth, thick] (von_neumann.north) -- node[left] {\textit{hardware}} (universal_turing_machine.south);
+				\draw[<->, >=stealth, thick] (stored_program_computer.west) -- (universal_turing_machine.east);
+				\draw[<-, >=stealth, thick] (stored_program_computer.north) -- node[right] {\textit{software}} (algorithm.south);
+				\draw[<-, >=stealth, thick] (universal_turing_machine.north) -- node[left] {\textit{first interpreter}} (turing_machine.south);
+				\draw[<->, >=stealth, thick] (algorithm.west) -- (turing_machine.east);
+ 			\end{tikzpicture}
+			\caption{From Turing to digital}
+			\label{fig:fromturingtodigital}
+		\end{figure}
+	}
+	\par{
+		\noindent\underline{TM:}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}[zero/.style = {draw}]
+				\node at (2, 2) (empty_1) {\vphantom{1}};
+				\foreach \i [count = \ii from 1] in {2, ..., 5}{
+					\node[right = -0.015 of empty_\ii] (empty_\i) {\vphantom{1}};
+				}
+				
+				\node[zero, right = -0.015 of empty_5] (zero_1) {0};
+				\foreach \i [count = \ii from 1] in {2, ..., 12}{
+					\node[zero, right = -0.015 of zero_\ii] (zero_\i) {0};
+				}
+
+				\node[right = -0.015 of zero_12] (empty_6) {\vphantom{1}};
+				\foreach \i [count = \ii from 6] in {7, ..., 10}{
+					\node[right = -0.015 of empty_\ii] (empty_\i) {\vphantom{1}};
+				}
+
+				\draw (empty_1.north west) -- (empty_10.north east);
+				\draw (empty_1.south west) -- (empty_10.south east);
+
+				\node[above = 0 of empty_1] (tape_t) {tape};
+				\draw[<-, >=stealth] (empty_10.east) -- ++(1, 0.5) node[right] {$\infty$};
+				\draw[<-, >=stealth] (zero_6.south) -- node[right = 0.25] {\textit{write}} node[left = 0.25] {\textit{read}} ++(0, -0.5) node[below] {left $\leftarrow$ head $\rightarrow$ right};
+			\end{tikzpicture}
+			\caption{TM read/write}
+			\label{fig:tmrw}
+		\end{figure}
+	}
+	\par{
+		\noindent\underline{Program:}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}[>=stealth', shorten >= 1pt, auto, node distance = 3cm, scale = 1, transform shape]
+				\node[initial, state] (a) {A};
+				\node[state, right of = a] (b) {B};
+				\node[state, below right of = a] (c) {C};
+				\node[state, accepting, right of = c] (h) {H};
+
+				\path[->]	(a) edge[left, bend right] node[below] {0/1, R} (b)
+							(b) edge[right, bend right] node[above] {0/1, L} (a)
+							(b) edge[loop right] (b)
+							(a) edge[below, bend right] (c)
+							(c) edge[above, bend right] (b)
+							(c) edge[right] (h)
+				; 
+			\end{tikzpicture}
+			\caption{Busy beaver (3 states)}
+			\label{fig:busybeaver}
+		\end{figure}
+	}
 }
