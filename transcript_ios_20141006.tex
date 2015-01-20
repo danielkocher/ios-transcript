@@ -226,4 +226,80 @@
 		\indent\texttt{if mem[b] $\le$ 0 goto c;} \newline
 		\indent\texttt{else pc := pc + 4;}
 	}
+	\par{
+		\noindent
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\draw[->] (-0.2, 0) -- (5.2, 0) node[right] {input size $\rightarrow \infty$};
+				\draw[->] (0, -0.2) -- (0, 5.2) node[left, text width = 1.5cm] {time, space, energy, costs};
+				\draw[very thin, color = gray, opacity = 0.5] (-0.1, -0.1) grid (4.9, 4.9);
+
+				\draw[color = red] (0, 3.5) -- (4.9, 4.9) node[right] {upper bound};
+				\draw[color = red] (0, 1) -- (4.9, 2.4) node[right] {lower bound};
+				\draw[color = blue] (0, 2.25) .. controls (1, 1.5) and (1.5, 3.75) .. (2.5, 3.25);
+				\draw[color = blue] (2.5, 3.25) .. controls (3.6, 3) and (4.2, 4.25) .. (4.9, 4);
+			\end{tikzpicture}
+			\caption{Asymptotic computational complexity [1]}
+			\label{fig:asymcompl1}
+		\end{figure}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\draw[->] (-0.2, 0) -- (5.2, 0) node[right] {input size};
+				\draw[->] (0, -0.2) -- (0, 5.2) node[above] {time};
+				\draw[very thin, color = gray, opacity = 0.5] (-0.1, -0.1) grid (4.9, 4.9);
+
+				\draw[color = red] (0, 4) -- (4.9, 4) node[right] {};
+				\draw[color = red] (4, 0) -- (4, 4.9) node[right] {};
+				\draw[color = blue] (0, 1) .. controls (1.5, 0.5) and (3, 2.5) .. (4, 4);
+				\draw[color = blue] (4, 4) -- (4.5, 4.75);
+				\node[text width = 1cm] at (-1.5, 2.5) {bounded input size};
+				\draw[->, thick] (3.1, 2) node[below, text width = 1.5cm] {better experiments} -- (3, 2.5);
+				\draw[->, thick, color = red] (4.25, 2) -- (4.75, 2) node[right] {do not care};
+			\end{tikzpicture}
+			\caption{Asymptotic computational complexity [2] (for operating systems)}
+			\label{fig:asymcompl2}
+		\end{figure}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\draw[->] (-0.2, 0) -- (9.2, 0) node[right] {input size};
+				\draw[->] (0, -0.2) -- (0, 7.2) node[left, text width = 1cm] {time, space};
+				\draw[very thin, color = gray, opacity = 0.5] (-0.1, -0.1) grid (8.9, 6.9);
+
+				\draw[color = red] (0, 6) -- (8.9, 6) node[above right] {$O(1)$, constant (cool!)};
+				\draw[color = blue] (0, 0) -- (6.9, 6.9) node[right] {$O(n)$, linear};
+				\draw[color = orange] (0, 0) .. controls (2.5, 0.5) and (5, 4) .. (6, 6);
+				\draw[color = orange] (6, 6) -- (6.45, 7.5) node[right] {$O(2^n)$, exponential};
+				\draw[color = black] (0, 1) .. controls (1, 3.5) and (4, 6) .. (8.9, 5.95) node[below right = 0] {$O(log n)$, logarithmic};
+				
+				\draw[->, thick] (-1, 6.25) node[below] {trade off} -- (-1, 6.6);
+			\end{tikzpicture}
+			\caption{Big O notation (upper bound)}
+			\label{fig:bigonotation}
+		\end{figure}
+	}
+	\par{
+		\noindent\underline{Big O notation (upper bound): $O(\#bits)$}
+		\par{\noindent$O(\#bits) = O(\#bytes) = O(\#char) = O(\#instructions) = O(\#objects)$}
+	}
+	\par{
+		\noindent\underline{Numeric representation}
+		\par{
+			\noindent
+			unary: $\underbrace{||||| ||||| ||||| |}_{16}$, binary: $\underbrace{1 0000}_{16}$, octal: $\underbrace{20}_{16}$, decimal: $\underbrace{16}_{16}$, hexadecimal: $\underbrace{10}_{16}$ \newline
+			Exponential reduction from unary to binary representation: $1 + n = \lfloor log_2 n\rfloor + 1$
+		}
+	}
+	\par{
+		\noindent
+		\texttt{fib(n) \{} \newline
+		\indent\texttt{if $n \le 2$} \newline
+		\indent\indent\texttt{return n;} \newline
+		\indent\texttt{else} \newline
+		\indent\indent\texttt{return (fib($n - 1$) + fib($n - 2$));} \newline
+		\texttt{\}}
+	}
+	\par{\noindent $log(n) \cdot log_d(2) = log_d(n)$}
 }
