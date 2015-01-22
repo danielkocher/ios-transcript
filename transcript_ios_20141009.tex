@@ -1,0 +1,111 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 20141009 - Introduction to Operating Systems VO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%fancyhdr
+\lhead{IOS VO} 
+\rhead{2014-10-09}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\par{
+	\noindent
+	What we want:
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}
+			\node[draw, minimum width = 2cm, minimum height = 8cm] (physmem) at (0, 0) {};
+			\node[left = 0 of physmem.south west] (physmem_0) {0};
+			\node[left = 0 of physmem.north west] (physmem_max) {max};
+			\node[below = 0.25 of physmem.south] (physmem_t) {phys. memory};
+
+			\foreach \i [count = \ii from 1] in {A, B}{
+				\node[draw, right = \ii * 4 of physmem.north east, minimum width = 0.25cm, minimum height = 0.5cm] (reg_proc\i) {};
+				\node[above = 0 of reg_proc\i] (reg_proc\i_t) {reg};
+				\node[draw, right = 0.25 of reg_proc\i.east, minimum width = 2cm, minimum height = 0.5cm] (stack_proc\i) {\footnotesize{Stack}};
+				\node[draw, below = 1.5 of stack_proc\i, minimum width = 2cm, minimum height = 0.5cm] (heap_proc\i) {\footnotesize{Heap}};
+				\node[draw, below = -0.015 of heap_proc\i.south, minimum width = 2cm, minimum height = 1cm] (globals_proc\i) {\footnotesize{Globals}};
+				\node[draw, below = -0.015 of globals_proc\i.south, minimum width = 2cm, minimum height = 3cm] (code_proc\i) {\footnotesize{Code}};
+				\draw (stack_proc\i.north west) -- (stack_proc\i.north east) -- (code_proc\i.south east) -- (code_proc\i.south west) -- (stack_proc\i.north west);
+				\node[below = 0.25 of code_proc\i.south] (proc\i_t) {process \i};
+				\draw[<-, >=stealth] (code_proc\i.west) -- ++(-0.5, 0);
+				\draw[->, >=stealth] (stack_proc\i.south) -- ++(0, -0.25);
+				\draw[->, >=stealth] (heap_proc\i.north) -- ++(0, 0.25);
+				\draw[dotted] (code_proc\i.west) ++(-0.25, 0) -- ++(0, -1.75);
+			}
+			\draw[dotted] (code_procA.west) ++(-0.25, -1.75) -- ++(4, 0);
+			\draw[<-, >=stealth] (code_procB.west) ++(-0.75, -1.75) -- ++(0, -1) node[below] {\footnotesize{context switch}};
+		\end{tikzpicture}
+		\caption{Each process thinks it owns the whole memory.}
+		\label{fig:concurrencymem}
+	\end{figure}
+	\noindent
+	Each process has its own virtual memory which is loaded whenever a context switch is performed. \textit{Concurrency} (competing for resources, time sharing) $\not=$ \textit{Parallelism} (truely parallel, multiple processors). \textit{Spatial isolation} is necessary to enable concurrency.
+}
+
+\par{
+	\noindent\underline{Data structures:}
+	\par{
+		\noindent
+		2 Goals:
+		\parskip0pt\begin{enumerate}
+			\item{Abstraction: table, list, tree, graph, \ldots}
+			\item{Safety: only accessing memory we have declared, memory access as specified.}
+		\end{enumerate}
+	}
+	\par{
+		\noindent
+		2 levels where we can have safety:
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\node[draw, minimum height = 2cm, minimum width = 2cm, text width = 2cm, text centered] (gc) at (1, 0) {Garbage Collector};
+				\node[draw, right = 1 of gc, minimum height = 1cm, minimum width = 4cm] (range_checking) {range checking};
+				\draw[] (gc.north west) ++(-0.5, 0.5) -- ++(12, 0);
+				\node[draw, above = 2 of range_checking, minimum height = 1cm, minimum width = 4cm] (type_checking) {type checking};
+
+				\node[right = 2 of range_checking] (runtime_t) {runtime};
+				\node[right = 2 of type_checking] (compiletime_t) {compile time};
+
+				\draw[<-, >=stealth] (type_checking.north east) -- ++(0.5, 0.5) node[right, text width = 4cm] {\footnotesize{has to be strong enough, \textit{static typing}}};
+			\end{tikzpicture}
+			\caption{safety levels}
+			\label{fig:safetylevels}
+		\end{figure}
+	}
+	\par{
+		\noindent
+		Unless all accesses use constants as indices, in general no compiler can perform a range check at compile time. At some point there is a limit. E.g. \texttt{i = 10; a[i];} is recognized by some compilers. \newline
+		If you do not allow dynamic allocation, your language does not allow to write a program which accesses memory outside (type and range checks required of course!). \newline
+		Suppose a \texttt{free} mechanism: you could free something and access it afterwards, or you could do \texttt{free(obj);} which creates a \textit{dangling pointer}, and do \texttt{obj.field = 1;} afterwards.
+	}
+	\par{
+		\noindent
+		\begin{minipage}{0.45\textwidth}
+			\begin{itemize}
+				\item{
+					Arrays: \newline
+					\texttt{int a[3];} \newline\newline
+				}
+				\item{
+					Records: \newline
+					\texttt{struct rec \{} \newline
+					\texttt{int i;} \newlinex
+					\texttt{struct rec *r;} \newline	
+					\texttt{\}} \newline\newline
+				}
+			\end{itemize}
+		\end{minipage}%
+		%\hfill
+		\begin{minipage}{0.45\textwidth}
+			\begin{figure}[H]
+				\centering
+				\begin{tikzpicture}
+
+				\end{tikzpicture}
+				\caption{Arrays and records in the memory}
+				\label{fig:arraysrecordsmem}
+			\end{figure}
+		\end{minipage}%
+	}
+}
