@@ -82,30 +82,88 @@
 	\par{
 		\noindent
 		\begin{minipage}{0.45\textwidth}
-			\begin{itemize}
-				\item{
-					Arrays: \newline
-					\texttt{int a[3];} \newline\newline
-				}
-				\item{
-					Records: \newline
-					\texttt{struct rec \{} \newline
-					\texttt{int i;} \newlinex
-					\texttt{struct rec *r;} \newline	
-					\texttt{\}} \newline\newline
-				}
-			\end{itemize}
+			\setlength{\parskip}{12pt plus2pt minus2pt}
+			\par{
+				\noindent\underline{Arrays:}
+				\begin{lstlisting}[language = C, frame = none]
+	int a[3];
+				\end{lstlisting}
+				The advantage of the contiguous layout in memory: constant time access.\newline
+				The big drawback of the contiguous layout in memory: fragmentation. \newline
+				3 ingredients of fragmentation:
+				\parskip0pt\begin{enumerate}
+					\item{contiguously allocated memory gives us constant time access (could be splitted as well)}
+					\item{blocks of different size}
+					\item{the order of deallocation is not equal to the order of allocation}
+				\end{enumerate}
+				In the worst case, there is a 50/50 allocation present. If we then want to allocate a big chunk of memory, it is not possible without some reordering.
+			}
+			\par{
+				\noindent\underline{Records:}
+				\begin{lstlisting}[language = C, frame = none]
+	struct rec {
+		int i;
+		struct rec *r;
+	};
+				\end{lstlisting}
+				The advantages of the contiguous layout in memory:
+				\parskip0pt\begin{itemize}
+					\item{constant time access (even faster than the array access because the offsets can be computed at compile time)}
+					\item{no fragmentation (if the implementer knows what s/he is doing)}
+				\end{itemize}
+				The disadvantage is the fact that the access complexity is not constant but linear in the size of the list.
+			}
 		\end{minipage}%
-		%\hfill
+		\hfill
 		\begin{minipage}{0.45\textwidth}
 			\begin{figure}[H]
 				\centering
 				\begin{tikzpicture}
+					\def\cellheight{0.65cm}
+					\tikzset{memcontcell/.style = {draw, minimum height = \cellheight, minimum width = 2cm}};
+					\tikzset{memposcell/.style = {minimum height = \cellheight}};
+					\tikzset{brace/.style = {decoration = {brace, mirror, raise = 4ex}, decorate}}
 
+					\node[memposcell] (mem_pos0) at (0, 0) {0};
+					\node[memcontcell, right = -0.015 of mem_pos0] (mem_cont0) {\texttt{3 (= i)}};
+
+					\foreach \i [count = \ii from 0] in {1, ..., 8}{
+						\node[memposcell, above = -0.015 of mem_pos\ii] (mem_pos\i) {\i};
+					}
+
+					\node[memcontcell, above = -0.015 of mem_cont0] (mem_cont1) {\texttt{3 (= r)}};
+					\node[memcontcell, above = -0.015 of mem_cont1] (mem_cont2) {};
+					\node[memcontcell, above = -0.015 of mem_cont2] (mem_cont3) {\texttt{4}};
+					\node[memcontcell, above = -0.015 of mem_cont3] (mem_cont4) {\texttt{0}};
+					\node[memcontcell, above = -0.015 of mem_cont4] (mem_cont5) {};
+					\node[memcontcell, above = -0.015 of mem_cont5] (mem_cont6) {\texttt{5}};
+					\node[memcontcell, above = -0.015 of mem_cont6] (mem_cont7) {\texttt{2}};
+					\node[memcontcell, above = -0.015 of mem_cont7] (mem_cont8) {\texttt{6}};
+
+					\node[draw, minimum height = 5cm, minimum width = 2cm, above = -0.015 of mem_cont8] (mem_contdots) {\ldots};
+					\node[memcontcell, above = -0.015 of mem_contdots] (mem_contmax) {};
+					\node[memposcell, left = -0.015 of mem_contmax] (mem_posmax) {max};
+					\node[above = 0 of mem_contmax] (abstract_memory_t) {abstract memory};
+
+					\draw[->, >=stealth] (mem_cont1.east) -- ++(0.5, 0) -- ++(0, \cellheight * 2) -- (mem_cont3.east);
+					\draw[brace] (mem_cont0.south east) -- node[right, xshift = 6ex] {\texttt{struct rec}} (mem_cont1.north east);
+					\draw[brace] (mem_cont3.south east) -- node[right, xshift = 6ex] {\texttt{struct rec}} (mem_cont4.north east);
+					\draw[brace] (mem_cont6.south east) -- node[right, xshift = 6ex] {\texttt{int a[3]}} (mem_cont8.north east);
+					\draw[<-, >=stealth, dotted] (mem_cont4.east) -- ++(1, 0.75) node[right] {zero: end of linked list};
 				\end{tikzpicture}
 				\caption{Arrays and records in the memory}
 				\label{fig:arraysrecordsmem}
 			\end{figure}
 		\end{minipage}%
+	}
+	\clearpage
+	\par{
+		\noindent
+		The only other option (to use contiguous allocation):
+		\begin{center}
+			\textbf{Construct data structures out of pointers}.
+		\end{center}
+		If we just allocate a billion of \texttt{struct rec} (which actually all have the same size), there is no fragmentation.
+		
 	}
 }
