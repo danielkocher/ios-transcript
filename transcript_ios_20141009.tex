@@ -164,6 +164,64 @@
 			\textbf{Construct data structures out of pointers}.
 		\end{center}
 		If we just allocate a billion of \texttt{struct rec} (which actually all have the same size), there is no fragmentation.
-		
+	}
+}
+
+\par{
+	\noindent\underline{Memory Hierarchy:}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}	
+			\tikzset{pyramidenode/.style = {draw, trapezium, trapezium left angle = 60, trapezium right angle = 60, minimum height = 1cm, text centered}}
+			\node (throughput_t) at (0, 0) {\textit{throughput}};
+			\node[above = 0.15 of throughput_t.north] (min_t) {min};
+			\node[above = 6 of min_t] (max_t) {max};
+			\draw[->, >=stealth] (min_t.north east) -- (max_t.south east);
+
+			\node[pyramidenode, above right = 0 and 4 of min_t, text width = 3.574cm] (cloud) {Cloud};
+			\node[pyramidenode, above = -0.015 of cloud, text width = 3.35cm] (storage) {Storage};
+			\node[pyramidenode, above = -0.015 of storage, text width = 2.6cm] (mainmemory) {Main Memory}; 
+			\node[pyramidenode, above = -0.015 of mainmemory, text width = 1.6cm] (caches) {Caches};
+			\node[pyramidenode, above = -0.015 of caches, text width = 1.1125cm] (register) {Reg};
+			\node[draw, above = -0.015 of register, regular polygon, regular polygon sides = 3, minimum width = 1cm, text width = 0.6cm] {};
+
+			% invisible nodes to curve pointers
+			\node[left = 1 of caches.west] (caches_left) {};
+			\node[left = 0.5 of mainmemory.west] (mainmemory_left) {};
+			\draw[<->, >=stealth] (caches.west) .. controls (caches_left) and (mainmemory_left) .. (mainmemory.west) node[above left = 0.25 and 0.4] {\tiny{Hardware}};
+
+			\node[right = 1.5 of register.east] (register_right) {};
+			\node[right = 0.5 of mainmemory.east] (mainmemory_right) {};
+			\draw[<->, >=stealth] (register.east) .. controls (register_right) and (mainmemory_right) .. (mainmemory.east) node[above right = 0.75 and 0.4] {\tiny{Compiler/Interpreter}};
+
+			\node[right = 0.5 of storage.east] (storage_right) {};
+			\draw[->, >=stealth] (mainmemory.east) .. controls (mainmemory_right) and (storage_right) .. (storage.east) node[above right = 0.25 and 0.4] {\tiny{OS}};
+
+			\node[right = 0.5 of cloud.east] (cloud_right) {};
+			\draw[->, >=stealth] (storage.east) .. controls (storage_right) and (cloud_right) .. (cloud.east) node[above right = 0.25 and 0.4] {\tiny{Services}};
+
+			\node[right = 0.5 of mainmemory.east] (memorymanagement) {\tiny{Memory management}};
+
+			\node[right = 8.5 of throughput_t] (latency_t) {\textit{latency}};
+			\node[above = 0.15 of latency_t.north] (lat_max_t) {max};
+			\node[above = 6 of lat_max_t] (lat_min_t) {min};
+			\draw[<-, >=stealth] (lat_max_t.north east) -- (lat_min_t.south east);
+
+			\node[right = 0.25 of latency_t] (capacity_t) {\textit{capacity}};
+			\node[above = 0.15 of capacity_t.north] (cap_max_t) {max};
+			\node[above = 6 of cap_max_t] (cap_min_t) {min};
+			\draw[<-, >=stealth] (cap_max_t.north east) -- (cap_min_t.south east);
+
+			\node[right = 0.25 of capacity_t] (volatility_t) {\textit{volatility}};
+			\node[above = 0.15 of volatility_t.north] (vol_min_t) {min};
+			\node[above = 6 of vol_min_t] (vol_max_t) {max};
+			\draw[->, >=stealth] (vol_min_t.north east) -- (vol_max_t.south east);
+ 		\end{tikzpicture}
+ 		\caption{Memory hierarchy}
+ 		\label{fig:memhierarchy}
+	\end{figure}
+	\par{
+		\noindent
+		\textit{Services}: Dropbox, Google Cloud, \ldots
 	}
 }
