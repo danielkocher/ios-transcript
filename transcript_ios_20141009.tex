@@ -225,3 +225,127 @@
 		\textit{Services}: Dropbox, Google Cloud, \ldots
 	}
 }
+
+\clearpage
+\par{
+	\noindent\underline{Caches:}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}
+			\node[draw] (legendX) at (0, 0) {X};
+			\node[right = 0 of legendX] (legendX_descr) {\ldots not used};
+
+			\tikzset{cacheentry/.style = {draw, minimum width = 1.5cm, minimum height = 1cm}}
+			\node[cacheentry, above = 0.5 of legendX_descr] (cacheentry0) {X};
+			\node[left = 0 of cacheentry0] (cacheentry0_nr) {0};
+			\node[cacheentry, above = -0.015 of cacheentry0] (cacheentry1) {X};
+			\node[left = 0 of cacheentry1] (cacheentry1_nr) {1};
+
+			\foreach \i [count = \ii from 1] in {2, 3, 4}{
+				\node[cacheentry, above = -0.015 of cacheentry\ii] (cacheentry\i) {};
+				\node[left = 0 of cacheentry\i] (cacheentry\i_nr) {\i};
+			}
+			\node[cacheentry, above = -0.015 of cacheentry4] (cacheentry5) {X};
+			\node[left = 0 of cacheentry5] (cacheentry5_nr) {5};
+
+			\node[draw, minimum width = 2cm, minimum height = 1cm, right = 3 of cacheentry1.north east] (address0) {};
+			\node[draw, minimum width = 2cm, minimum height = 1cm, above = -0.015 of address0] (address1) {2-4};
+			\node[draw, minimum width = 2cm, minimum height = 1.5cm, above = -0.015 of address1] (address2) {};
+			\node[draw, minimum width = 3cm, minimum height = 1cm, right = -0.015 of address0] (cacheline0) {};
+			\node[draw, minimum width = 1cm, minimum height = 1cm, right = -0.015 of address1] (cacheline1_1) {\tiny{(2)}};
+			\node[draw, minimum width = 1cm, minimum height = 1cm, right = -0.015 of cacheline1_1] (cacheline1_2) {\tiny{(3)}};
+			\node[draw, minimum width = 1cm, minimum height = 1cm, right = -0.015 of cacheline1_2] (cacheline1_3) {\tiny{(4)}};
+			\node[draw, minimum width = 3cm, minimum height = 1.5cm, right = -0.015 of address2] (cacheline2) {};
+
+			\node[above = 0.5 of address2.north] (address_t) {\textit{address}};
+			\node[above = 0.5 of cacheline2.north] (cacheline_t) {\textit{cache line}};
+			\draw[->, >=stealth] (cacheline_t.south) -- (cacheline2.north);
+			\draw[->, >=stealth] (address_t.south) -- (address2.north);
+			\draw[->, >=stealth] (cacheline2.north east) ++(0.5, 0) -- ++(0, -3.5cm); 
+
+			\tikzset{brace/.style = {decoration = {brace, mirror, raise = 1ex}, decorate}}
+			\draw[brace] (cacheentry2.south east) -- node[right] (brace_middle) {} (cacheentry4.north east);
+			\node[right = 1 of brace_middle] (brace_middle_r) {};
+			\node[left = 1 of address1] (address1_l) {};
+			\draw[<-, >=stealth] (address1.west) .. controls (address1_l) and (brace_middle_r) .. (brace_middle.east) node[above right] {\textit{cache hit}};
+		\end{tikzpicture}
+		\caption{Caches}
+		\label{fig:caches}
+	\end{figure}
+	\par{
+		\noindent
+		\par{\noindent Why is caching beneficial? Checking and searching in the cache and not the main memory is much faster.}
+		\par{
+			\noindent
+			What motivates a cache? \textit{Temporal locality}: access of a given memory location is likely to be followed by an access of the same location in the near future. Examples are looping und sequentiality.
+		}
+		\par{
+			\noindent
+			What motivates a cache line? \textit{Spatial locality}: access of a given memory location is likely to be followed by a location nearby (local memory neighbor location). This is especially beneficial for sequential code and may be bad for parallel code. An example is the linearity of data structures  in the memory.
+		}
+		\par{
+			\noindent
+			An example where cache lines are bad for parallel code: if 2 threads have two variables and align them in the cache line like in Figure~\ref{fig:cacheline_bad}. This is the worst case because the cache line has to be replaced every time.
+			\begin{figure}[H]
+				\centering
+				\begin{tikzpicture}
+					\tikzset{brace/.style = {decoration = {brace, mirror, raise = 1ex}, decorate}}
+					\node[draw, minimum height = 1cm, minimum width = 1.5cm] (cacheline2) {\tiny{(2)} \normalsize X};
+					\node[draw, minimum height = 1cm, minimum width = 1.5cm, right = -0.015 of cacheline2] (cacheline3) {\tiny{(3)}};
+					\node[draw, minimum height = 1cm, minimum width = 1.5cm, right = -0.015 of cacheline3] (cacheline4) {\tiny{(4)} \normalsize X};
+				\end{tikzpicture}
+				\caption{Example of \textit{false sharing}}
+				\label{fig:cacheline_bad}
+			\end{figure}
+		}
+		\clearpage
+		\par{
+			\noindent
+			There are two extreme design choices when it comes to cache design:
+			\parskip0pt\begin{enumerate}
+				\item{
+					fully-associative cache $\rightarrow$ each cell in memory can be in any cache location \newline
+					slow search, high hit rate
+				}
+				\item{
+					direct-mapped cache $\rightarrow$ each cell in the memory can only be in one cache location \newline
+					fast search, high miss rate (many different memory addresses mapped to the same cache line because the size of the cache is $<<$ the size of the memory $\rightarrow$ lower utilization.)
+				}
+			\end{enumerate}
+			\begin{figure}[H]
+				\centering
+				\begin{tikzpicture}
+					\draw[->] (-0.2, 0) node[below] (direct_mapped_t) {direct-mapped} -- (9.2, 0) node[below] (associative_t) {associative};
+					\draw[->] (0, -0.2) -- (0, 7.2) node[left, text width = 1cm] {Hit rate};
+					\draw[very thin, color = gray, opacity = 0.5] (-0.1, -0.1) grid (8.9, 6.9);
+
+					\draw[color = red, thick] (0.25, 0.25) .. controls (2, 3.5) and (4, 4.25) .. (8.9, 4.5);
+					\draw[thick] (6, 0) node[below] (4_way_associative_t) {4-way associative} -- (6, 5);
+					\draw[->, >=stealth] (direct_mapped_t.south) -- ++(0, -0.5) node[below] {bigger cache size};
+					\draw[->, >=stealth] (4_way_associative_t.south) -- ++(0, -0.5) node[below, text width = 2cm, text centered] {best effort at the moment};
+					\draw[->, >=stealth] (associative_t.south) -- ++(0, -0.5) node[below] {smaller cache size};
+				\end{tikzpicture}
+				\caption{Hit rate of different cache designs}
+				\label{fig:hitratediffcachedesigns}
+			\end{figure}
+		}
+	}
+	\par{
+		\noindent\underline{Fragmentation:}
+		\par{
+			\noindent
+			Caused by allocation and deallocation in different order. A bump pointer allocation is performed, the allocated memory is contiguous aligned.
+			\begin{figure}[H]
+				\centering
+				\begin{tikzpicture}
+					\tikzset{snake it/.style = {decorate, decoration=snake}}
+
+					\node[draw, minimum height = 4cm, minimum width = 2cm] (nomemhole_node) {};
+					\path[draw, snake it] () -- () -- () -- ();
+				\end{tikzpicture}
+				\caption{Memory hole}
+				\label{fig:memhole}
+			\end{figure}
+		}
+	}
+}
