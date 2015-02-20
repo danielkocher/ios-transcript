@@ -338,14 +338,90 @@
 			\begin{figure}[H]
 				\centering
 				\begin{tikzpicture}
-					\tikzset{snake it/.style = {decorate, decoration=snake}}
+					\tikzset{snake it/.style = {decorate, decoration={snake, amplitude = 6mm, segment length = 10mm}}}
 
-					\node[draw, minimum height = 4cm, minimum width = 2cm] (nomemhole_node) {};
-					\path[draw, snake it] () -- () -- () -- ();
+					\node[draw, minimum height = 4cm, minimum width = 2cm] at (0, 2) (nomemhole_node) {};
+					\path[draw, snake it, ->, >=stealth] (0, 3.75) -- (0, 0.25);
+
+					\node[draw, minimum height = 4cm, minimum width = 2cm, right = 1 of nomemhole_node.east] (memhole_node) {};
+					\path[draw, snake it, >=stealth] (3, 3.75) -- (3, 2.25);
+					\path[draw, snake it, ->, >=stealth] (3, 1.25) -- (3, 0.25);
+					\draw[->, >=stealth, dashed] (5, 1.75) node[right] {hole} -- (3, 1.75);
 				\end{tikzpicture}
 				\caption{Memory hole}
 				\label{fig:memhole}
 			\end{figure}
 		}
+		\par{
+			\noindent\underline{3 solutions:}
+			\parskip0pt\begin{enumerate}
+				\item{
+					Compaction: \newline
+					Make bigger holes and get a bound on fragmentation. \newline
+					Moving memory in space is slow ($O(n)$ in the size of the memory to move). \newline
+					Furthermore the addresses change ($O(n)$ in the size of the memory).
+				}
+				\item{
+					Coalescing: \newline
+					Non-moving, merge contiguous free blocks. No bound and causes an improvement on average but not in the worst case.
+				}
+				\item{
+					Partitioning (Prepartitioning): \newline
+					\textit{scalloc} implementation from the University of Salzburg (scalable allocation).
+				}
+			\end{enumerate}
+		}
+	}
+	\par{
+		\noindent\underline{scalloc:}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\def\memoryparth{3cm}
+				\def\memorypartw{4cm}
+				\tikzset{memory_part/.style = {draw, minimum width = \memorypartw, minimum height = \memoryparth}}
+
+				\node[draw, minimum height = 7.5cm, minimum width = 14cm] at (0, 0) (memory) {};
+
+				\node[memory_part, below right = 0.5 of memory.north west] (memory_part1) {};
+				\draw (memory_part1.south) ++(-0.7, 0) -- ++(0, \memoryparth);
+				\draw (memory_part1.south) ++(0.7, 0) -- ++(0, \memoryparth);
+				\draw (memory_part1.west) ++(0, -0.5) -- ++(\memorypartw, 0);
+				\draw (memory_part1.west) ++(0, 0.5) -- ++(\memorypartw, 0);
+				\node[draw, circle, below right = 0.55 and 0.725 of memory.north west] (memory_part1_circle1) {X}; 
+				\node[draw, circle, below right = 0.55 and 2.1 of memory.north west] (memory_part1_circle2) {X};
+				\draw (memory_part1_circle1) -- ++(3, 0) -- ++(0, -1) -- ++(-3, 0) -- ++(0, -1) -- ++(3, 0);
+
+				\node[memory_part, right = 0.5 of memory_part1.east] (memory_part2) {};
+				\draw (memory_part2.south) -- (memory_part2.north);
+				\draw (memory_part2.east) -- (memory_part2.west);
+				\node[draw, circle, below right = 0.5 and 0.65 of memory_part2.north west] (memory_part2_circle) {X};
+
+				\node[memory_part, right = 0.5 of memory_part2.east] (memory_part3) {};
+
+				\node[memory_part, below = 0.5 of memory_part1.south] (memory_part4) {};
+				\node[memory_part, below = 0.5 of memory_part2.south] (memory_part5) {};
+				\node[memory_part, below = 0.5 of memory_part3.south] (memory_part6) {};
+
+				\draw[<-, >=stealth] (memory_part1.west) ++(0.25, 0) -- ++(-1, 0) node[left, text width = 2cm] {\footnotesize{all of the same size}};
+				\draw[<-, >=stealth] (memory_part1.south west) -- ++(-0.75, -1) node[below left, text width = 2.25cm] {\footnotesize{bump pointer allocation inside; spatial locality}};
+				\draw[<-, >=stealth] (memory_part1_circle1.north) -- ++(0, 0.75) node[above, text width = 2cm] {\footnotesize{12 byte}};
+				\draw[<-, >=stealth] (memory_part2_circle.north) -- ++(0, 1) node[above, text width = 2cm] {\footnotesize{bigger}};
+				\draw[<-, >=stealth] (memory_part2.north east) -- ++(0, 0.75) node[above, text width = 3.5cm] {\footnotesize{size-class; when empty can be resized}};
+			\end{tikzpicture}
+			\caption{Visualization of the \textit{scalloc} idea}
+			\label{fig:scallocidea}
+		\end{figure}
+		
+		\noindent \underline{Pros:}
+		\parskip0pt\begin{itemize}
+			\item{no external fragmentation}
+ 		\end{itemize}
+ 		
+ 		\noindent \underline{Cons:}
+ 		\parskip0pt\begin{itemize}
+ 			\item{internal fragmentation (whenever partitioning is done)}
+			\item{anything bigger than the partition size cannot be allocated (bound on max. size)}
+ 		\end{itemize}
 	}
 }
