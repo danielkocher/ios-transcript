@@ -1,0 +1,76 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 20141010 - Introduction to Operating Systems VO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%fancyhdr
+\lhead{IOS VO} 
+\rhead{2014-10-10}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\par{
+	\noindent\underline{Real-time application:}
+	\par{\noindent You know how much time a specific operation takes and there is a guarantee on this max. time.}
+
+	\noindent\underline{Thread Local Allocation Buffer (TLAB):}
+	\par{
+		\noindent
+		Each thread has its own TLAB to allow faster allocation. Whenever a new object is allocated on the heap, the object will first be placed in the TLAB. The performance improvement is because the threads can allocate additional memory within the TLAB without locking anything. The TLAB is pre allocated for each thread.
+	}
+}
+
+\par{
+	\noindent\underline{Virtual Memory:}
+	\par{
+		\noindent
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{memory/.style = {draw, minimum height = 6cm, minimum width = 2cm}}
+
+				\node[memory] at (0, 0) (physical_memory) {};
+				\node[right = 0 of physical_memory.south east] {\footnotesize{0}};
+				\node[right = 0 of physical_memory.north east] {\footnotesize{max}};
+				\node[below = 0.25 of physical_memory.south] {\footnotesize{physical memory}};
+
+				\node[memory, right = 2 of physical_memory.east] (memory_procA) {}; 
+				\node[below = 0.25 of memory_procA.south] (memory_procA_t) {\footnotesize{Process A}};
+				\node[below = 0.25 of memory_procA_t.south, text width = 1.75cm] (code_mem_procA_t) {\footnotesize{code + memory + registers}};
+				\draw[<-, >=stealth] (code_mem_procA_t.south) -- ++(0, -0.5) node[below] {\footnotesize{current}};
+
+				\node[right = 0.75 of memory_procA.east] {\footnotesize{\ldots}};
+
+				\node[memory, right = 2 of memory_procA.east] (memory_procB) {}; 
+				\node[below = 0.25 of memory_procB.south] (memory_procB_t) {\footnotesize{Process B}};
+				\node[below = 0.25 of memory_procB_t.south, text width = 1.75cm] (code_mem_procB_t) {\footnotesize{code + memory + registers}};
+
+				\node[right = 0.75 of memory_procB.east] {\footnotesize{\ldots}};
+				\node[right = 2 of memory_procB_t.east] {\footnotesize{Process $n$}};
+			\end{tikzpicture}
+			\caption{Virtual memory: basic idea}
+			\label{fig:virtmem_basicidea}
+		\end{figure}
+	}
+	\par{
+		\noindent
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{memory/.style = {draw, minimum height = 6cm, minimum width = 2cm}}
+
+				\node[memory] at (0, 0) (memory_procA) {}; 
+
+
+				\node[draw, minimum height = 1cm, minimum width = 0.5cm, right = 2 of memory_procA] (page_table) {};
+
+
+				\node[draw, minimum height = 3cm, minimum width = 1.5cm, right = 1 of page_table] (physical_memory) {};
+
+
+				\node[memory, right = 2 of physical_memory] (memory_procB) {};
+			\end{tikzpicture}
+			\caption{Virtual memory: virtual and physical address space}
+			\label{fig:virtmem_virtphysaddrspace}
+		\end{figure}
+	}
+}
