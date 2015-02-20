@@ -425,3 +425,92 @@
  		\end{itemize}
 	}
 }
+
+\par{
+	\noindent\underline{Basic two techniques for Garbage Collection:}
+	\par{
+		\noindent
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\node[draw, minimum height = 6cm, minimum width = 6cm] (unreachable) {};
+				\node[draw, minimum height = 3.5cm, minimum width = 4cm, below = 2 of unreachable.north] (reachable) {};
+				\node[draw, minimum height = 2cm, minimum width = 2cm, below = 1 of reachable.north] {\footnotesize{live}};
+				\node[below = 0.25 of reachable.north] {\footnotesize{Reachable}};
+				\node[below = 0.25 of unreachable.north] {\footnotesize{Unreachable, dead}};
+				\draw[<-, >=stealth] (unreachable.south west) -- ++(-0.5, 0) node[left] {\footnotesize{Heap}};
+			\end{tikzpicture}
+			\caption{Sets of Garbage Collection}
+			\label{fig:gc2basictechniques}
+		\end{figure}
+	}
+	\par{
+		\noindent
+		\parskip0pt\begin{itemize}
+			\item{live: will be used in the future}
+			\item{dead: will not be used (computation of the dead set is impossible in general)}
+		\end{itemize}
+	}
+	\par{
+		\noindent\underline{Tracing:}
+		Computes reachable set (and so knows the unreachable set). Semi-space allocator.
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{snake it/.style = {decorate, decoration={snake, amplitude = 6mm, segment length = 10mm}}}
+				\tikzset{semispace arrow/.style = {o->, >=stealth, dotted}}
+
+				\node[draw, minimum height = 5cm, minimum width = 2cm] at (0, 0) (left_space) {};
+				\node[draw, minimum height = 5cm, minimum width = 2cm, right = 0 of left_space] (right_space) {};
+
+				\path[draw, snake it, ->, >=stealth] (0, 2.25cm) -- (0, -2.25);
+				\draw[semispace arrow] (-0.5, 1.75cm) -- (2cm, 2.25cm);
+				\draw[semispace arrow] (0, 1.5cm) -- (2cm, 2.05cm);
+				\draw[semispace arrow] (-0.5, 1cm) -- (2cm, 1.85cm);
+				\draw[semispace arrow] (0, 0.4cm) -- (2cm, 1.65cm);
+				\draw[semispace arrow] (-0.25, -0.25cm) -- (2cm, 1.45cm);
+				\draw[semispace arrow] (0.25, -0.75cm) -- (2cm, 1.25cm);
+				\draw[semispace arrow] (0, -1.6cm) -- (2cm, 1.05cm);
+
+				\node[below right = 1 and 0.5 of right_space.north east, text width = 4cm] (on_the_fly_compaction) {\footnotesize{on-the-fly compaction}};
+				\node[below = 0.5 of on_the_fly_compaction, text width = 4cm] (linear_time_compl) {\footnotesize{linear time complexity in the size of the heap}};
+			\end{tikzpicture}
+			\caption{Semi-space allocator}
+			\label{fig:semispaceallocator}
+		\end{figure}
+	}
+	\par{
+		\noindent\underline{Reference Counting:}
+		Computes the unreachable set: count references to an object and deallocate it when the count reaches zero. \newline
+		Drawback: Incrementing/Decrementing every time. \newline
+		Complexity: Needs cycle detection, $O(n)$ in the size of the heap.
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\node[draw, circle] at (0, 0) (circle1) {};
+				\node[draw, circle, above right = 0.5 and 1 of circle1] (circle2) {};
+				\node[draw, circle, below right = 1 and 2 of circle2] (circle3) {};
+				\node[draw, circle, below left = 0.5 and 1 of circle3] (circle4) {};
+				\node[draw, circle, above left = 0 and 1 of circle4] (circle5) {};
+
+				\draw[->, >=stealth] (circle1.north east) -- (circle2.west);
+				\draw[->, >=stealth] (circle2.east) -- (circle3.north west);
+				\draw[->, >=stealth] (circle3.south west) -- (circle4.east);
+				\draw[->, >=stealth] (circle4.west) -- (circle5.east);
+				\draw[->, >=stealth] (circle5.north west) -- (circle1.south east);
+
+				\node[right = 0.5 of circle3, text width = 3.25cm] {would never be removed because all references have count = 1 $\Rightarrow$ memory leak};
+			\end{tikzpicture}
+			\caption{Reference Counting: cycle detection needed}
+			\label{fig:refcounting}
+		\end{figure}
+	}
+	\par{
+		\noindent\underline{Reachable memory leak:}
+		\par{\noindent Occurs when the reachable set grows \& grows because the programmer does not destroy references in garbage-collected languages.}
+	}
+	\par{
+		\noindent\underline{In Multicore systems era:}
+		\par{\noindent Run Garbage Collector on an own CPU if one is free.}
+	}
+}
