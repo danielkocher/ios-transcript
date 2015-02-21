@@ -57,20 +57,138 @@
 			\centering
 			\begin{tikzpicture}
 				\tikzset{memory/.style = {draw, minimum height = 6cm, minimum width = 2cm}}
+				\tikzset{brace/.style = {decoration = {brace, mirror, raise = 1ex}, decorate}}
 
-				\node[memory] at (0, 0) (memory_procA) {}; 
-
+				\node[memory] at (0, 0) (memory_procA) {};
+				\node[below = 0.25 of memory_procA.south, text width = 2.5cm, text centered] (memory_procA_t) {\footnotesize{virtual address space of process A}};
+				\draw (memory_procA_t.south west) -- (memory_procA_t.south east) node[below left = 0 and 0.5] {\footnotesize{Namespace}};
+				\node[left = 0 of memory_procA.north west] {\footnotesize{$2^{64} -1$}};
+				\node[left = 0 of memory_procA.south west] {\footnotesize{$0$}};
+				\draw (-1, -2.25) -- ++(2, 0);
+				\draw (-1, -1.5) -- ++(2, 0);
+				\node at (0, -2.6) (first4kb) {\footnotesize{4kB}};
+				\node at (0, -1.85) (second4kb) {\footnotesize{4kB}};
+				\draw[<-, >=stealth] (-1, -1.85) -- ++(-0.5, 0) node[left] {\footnotesize{Page}};
 
 				\node[draw, minimum height = 1cm, minimum width = 0.5cm, right = 2 of memory_procA] (page_table) {};
-
+				\node[below = 0.25 of page_table.south, text width = 1cm, text centered] (page_table_t) {\footnotesize{page table}};
+				\draw (3.02, -0.25) node (page_table_entry) {} -- ++(0.5, 0);
+				\node[right = 1 of first4kb] (invis_first4kb) {};
+				\node[left = 0.75 of page_table.south west] (invis_page_table_left) {};
+				\draw[->, >=stealth] (memory_procA.south east) ++(0, 0.25) .. controls (invis_first4kb) and (invis_page_table_left) .. (page_table_entry.south);
 
 				\node[draw, minimum height = 3cm, minimum width = 1.5cm, right = 1 of page_table] (physical_memory) {};
-
+				\node[below = 0.25 of physical_memory.south, text width = 1.5cm, text centered] (physical_memory_t) {\footnotesize{physical memory}};
+				\node[draw, minimum width = 1.5cm, minimum height = 0.5cm, left = -1.5135 of physical_memory] (physical_memory_entry) {\footnotesize{Code}};
+				\node[right = 0.25 of page_table_entry.south east] (invis_page_table_right) {};
+				\node[left = 0.25 of physical_memory_entry] (invis_physical_memory_left) {};
+				\draw[o->, >=stealth] (page_table_entry.south east) ++(0, 0.025) .. controls (invis_page_table_right) and (invis_physical_memory_left) .. (physical_memory_entry.west);
+				\node[left = 0 of physical_memory.south west] {\footnotesize{$0$}};
+				\node[left = 0 of physical_memory.north west] {\footnotesize{$2^{32} - 1$}};
+				\draw[brace] (physical_memory_entry.south east) -- node[right = 0.25, text width = 1cm, text centered] (brace_middle) {\footnotesize{4kB page frame}} (physical_memory_entry.north east);
+				\draw[<-, >=stealth] (physical_memory.north) -- ++(-0.5, 1.5) node[left, text width = 2cm, text centered] {\footnotesize{Page frame allocator}};
 
 				\node[memory, right = 2 of physical_memory] (memory_procB) {};
+				\node[below = 0.25 of memory_procB.south, text width = 2.5cm, text centered] (memory_procB_t) {\footnotesize{virtual address space of process B}};
+				\node[left = 0 of memory_procB.north west] {\footnotesize{$2^{64} -1$}};
+				\node[left = 0 of memory_procB.south west] {\footnotesize{$0$}};
 			\end{tikzpicture}
 			\caption{Virtual memory: virtual and physical address space}
 			\label{fig:virtmem_virtphysaddrspace}
+		\end{figure}
+		\par{
+			\noindent
+			Logical the address space is from $0$ to $2^{64} - 1$. But current hardware supports up to $2^{48}$ and current software supports only up to $2^{45}$ addresses.
+		}
+		\par{
+			\noindent
+			The page table resolves the mapping from virtual memory (only addresses) to physical memory (actual memory we can store data to). \newline
+			Why do we use 4kB chunks? The smaller the pages the bigger the page table, e.g. if we would use 1B pages the page table would have a size of $2^{64}$ entries. The use of 4kB pages reduces this by a factor of 4.000. The fact that all pages have the same size (4kB) results in a big advantage: there is no fragmentation.
+		}
+	}
+	\par{
+		\noindent\underline{Memory Management Unit (MMU):}
+		\par{
+			\noindent
+			Very fast hardware to resolve the mapping virtual address $\leftrightarrow$ physical address. It also serves as a memory protector and tells the operating systems which virtual addresses are accessible. Because there are millions of requests, this mechanism has to be very fast and thus is implemented in hardware.
+		}
+	}
+	\par{
+		\noindent\underline{Page fault:}
+		\par{\noindent Page fault handler $\leftrightarrow$ Trap $\leftrightarrow$ MMU.}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{memory/.style = {draw, minimum height = 6cm, minimum width = 2cm}}
+				\tikzset{brace/.style = {decoration = {brace, raise = 1ex}, decorate}}
+
+				\node[memory] at (0, 0) (memory_proc) {};
+				\node[below = 0 of memory_proc] (memory_proc_t) {\footnotesize{process}};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, left = -2.015 of memory_proc] (memory_proc_entry) {};
+				\draw[brace] (memory_proc_entry.south west) -- node[left = 0.25, text width = 1cm, text centered] (brace_middle) {\footnotesize{4kB}} (memory_proc_entry.north west);
+
+				\node[draw, minimum height = 3cm, minimum width = 2cm, right = 2 of memory_proc] (page_table) {};
+				\node[below = 0 of page_table] (page_table_t) {\footnotesize{page table}};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, left = -2.015 of page_table] (page_table_entry) {};
+				\draw[<-, >=stealth] (page_table.north) -- ++(0, 0.5) node[above] {\footnotesize{MMU}};
+				\draw[o->, >=stealth] (memory_proc_entry.center) -- (page_table_entry.west);
+				\draw[o->, >=stealth] (page_table_entry.center) -- ++(1.5, 0) node[right] {\footnotesize{?}};
+
+				\node[memory, right = 2 of page_table] (memory_physical) {};
+				\node[below = 0 of memory_physical] (memory_physical_t) {\footnotesize{physical memory}};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, left = -2.015 of memory_physical] (memory_physical_entry) {};
+
+				\draw[->, >=stealth] (page_table_t.south) ++(0, -2) node[below right] {\footnotesize{MMU}} -- ++(0, -1);
+
+				\node[memory, below = 3 of memory_proc] (memory_proc2) {};
+				\node[below = 0 of memory_proc2] (memory_proc2_t) {\footnotesize{process}};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, left = -2.015 of memory_proc2] (memory_proc_entry2) {};
+				\draw[brace] (memory_proc_entry2.south west) -- node[left = 0.25, text width = 1cm, text centered] (brace_middle) {\footnotesize{4kB}} (memory_proc_entry2.north west);
+
+				\node[draw, minimum height = 3cm, minimum width = 2cm, right = 2 of memory_proc2] (page_table2) {};
+				\node[below = 0 of page_table2] (page_table2_t) {\footnotesize{page table}};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, left = -2.015 of page_table2] (page_table_entry2) {};
+				\draw[<-, >=stealth] (page_table2.north) -- ++(0, 0.5) node[above] {\footnotesize{MMU}};
+				\draw[o->, >=stealth] (memory_proc_entry2.center) -- (page_table_entry2.west);
+				
+				\node[memory, right = 2 of page_table2] (memory_physical2) {};
+				\node[below = 0 of memory_physical2] (memory_physical2_t) {\footnotesize{physical memory}};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, left = -2.015 of memory_physical2] (memory_physical_entry2) {\footnotesize{X}};
+				\draw[o->, >=stealth] (page_table_entry2.center) -- (memory_physical_entry2.west);
+			\end{tikzpicture}
+			\caption{Resolving a page fault.}
+			\label{fig:pagefaultresolve}
+		\end{figure}
+		\par{
+			\noindent
+			If a page fault occurs, the MMU resolves the corresponding mapping and the requested operation is executed again after the mapping was done by the MMU. This is called \textit{on-demand paging}.
+		}
+		\par{
+			\noindent
+			$\frac{2^{64}}{4kB} = \frac{2^{64}}{2^{12}} = 2^{52}$ is the size of the page table if 4kB pages are used. We would not be able to allocate such a big page table. \newline
+			The address space is gigantic and the whole address space is (almost) never used completely by a single process (\textit{sparsely/tensed populated}). \newline
+			Thus, size of the page table $\ll 2^{52} \Rightarrow$ no array is used $\Rightarrow$ \textit{2-level tree} is used.
+		}
+		\begin{figure}
+			\centering
+			\begin{tikzpicture}
+				\tikzset{pd_entry/.style = {draw, minimum height = 1cm, minimum width = 1cm}}
+				\tikzset{pt_entry/.style = {draw, minimum height = 0.5cm, minimum width = 0.5cm}}
+
+				\node[pd_entry] (pd_entry1) {};
+				\foreach \i [count = \ii from 1] in {2, 3, 4, 5, 6}{
+					\node[pd_entry, right = -0.015 of pd_entry\ii] (pd_entry\i) {};
+				}
+				\node[right = 0 of pd_entry6.east, text width = 2cm, text centered] (pd_t) {\footnotesize{page directory}};
+
+				\node[pt_entry, below left = 2 and 2 of pd_entry1] (pt_entry1) {};
+				\foreach \i [count = \ii from 1] in {2, 3, 4, 5, 6, 7, 8}{
+					\node[pt_entry, right = -0.015 of pt_entry\ii] (pt_entry\i) {};
+				}
+				\node[right = 0 of pt_entry8.east, text width = 2cm, text centered] (pt_t) {\footnotesize{page table}};
+			\end{tikzpicture}
+			\caption{2-level tree (or 2-phase tree).}
+			\label{fig:2leveltree}
 		\end{figure}
 	}
 }
