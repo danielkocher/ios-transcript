@@ -186,9 +186,110 @@
 					\node[pt_entry, right = -0.015 of pt_entry\ii] (pt_entry\i) {};
 				}
 				\node[right = 0 of pt_entry8.east, text width = 2cm, text centered] (pt_t) {\footnotesize{page table}};
+
+				\draw[->, >=stealth] (pd_entry1.center) -- (pt_entry4.north);
+				\foreach \i in {1, 2, 3, 4, 5, 6, 7, 8}{
+					\draw[->, >=stealth] (pt_entry\i.center) -- ++(0, -0.5);
+				}
+
+				\node[below = 1 of pd_entry6, text width = 4cm, text centered] {\footnotesize{constant time access, because the depth of the tree is known (2).}};
 			\end{tikzpicture}
 			\caption{2-level tree (or 2-phase tree).}
 			\label{fig:2leveltree}
+		\end{figure}
+		\par{\noindent\textit{Prefetching} is even smarter. If a page is loaded, its neighbors (the page below/above it) are loaded within the same request (see spatial locality).}
+		\par{
+			\noindent
+			Physical memory full on page fault $\Rightarrow$ Swap out page frames onto HDD/Flash/Cloud. Swap file entry tells the operating system that the page frame is located in the swap partition. Swapped out page frames are marked in the page table. Single page frames are swapped out (\textit{frame granularity}).
+		}
+		\par{
+			\noindent\underline{Page replacement algorithms:}
+			\par{
+				\noindent
+				The best page frame to replace would be the one which is used the farthest in the future. But to determine this optimal page frame the operating system would need to look into the future. Thus there are several algorithms trying to approximate this behavior: clock, aging, LRU (least recently used).
+			}
+		}
+		\par{
+			\noindent\underline{Process switch:}
+			\par{
+				\noindent
+				When the operating system (the scheduler) switches the process, e.g. the currently executed process A is put to sleep and process B is scheduled next, the page table and the program counter (PC) are switched. The MMU then uses the page table of process B and the CPU uses the program counter of process B. Figure~\ref{fig:pagetableconcurrentprocessesprocA} and~\ref{fig:pagetableconcurrentprocessesprocB} show the process switch. So each process has the illusion that it owns the whole physical address space.
+			}
+			\par{
+				\noindent
+				The process switch can be done in constant time because the operating system only needs to adjust the pointers of the MMU and the CPU, respectively. This results in a perfect isolation in memory.
+			}
+		}
+		\clearpage
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{memory/.style = {draw, minimum height = 6cm, minimum width = 2cm}}
+				\tikzset{page_table/.style = {draw, minimum height = 1cm, minimum width = 0.5cm}}
+
+				\node[memory] at (0, 0) (memory_physical) {};
+				\node[left = 0 of memory_physical.north west] {\footnotesize{max}};
+				\node[left = 0 of memory_physical.south west] {\footnotesize{0}};
+				\node[below = 0.25 of memory_physical.south] {\footnotesize{physical memory}};
+				\draw[<-, >=stealth] (memory_physical.north) -- ++(0, 0.5) node[right] (pc) {\footnotesize{PC}} node[above = 0.25] {\footnotesize{CPU}};
+
+				\node[right = 2 of pc] (mmu) {\footnotesize{MMU}};
+				\node[below = 0.5 of mmu, text width = 2.5cm, text centered] (pt) {\footnotesize{page table (of currently active process A)}};
+				\draw[->, >=stealth] (mmu.south) -- (pt.north);
+ 
+				\node[memory, right = 5 of memory_physical] (memory_procA) {};
+				\node[below = 0.25 of memory_procA.south] {\footnotesize{process A}};
+				\node[page_table, above = 0.25 of memory_procA.north] (page_table_procA) {}; 
+				\node[right = 0 of page_table_procA.east, text width = 1cm, text centered] {\footnotesize{page table}};
+
+				\node[memory, right = 3 of memory_procA] (memory_procB) {};
+				\node[below = 0.25 of memory_procB.south] {\footnotesize{process B}};
+				\node[page_table, above = 0.25 of memory_procB.north] (page_table_procB) {};
+				\node[right = 0 of page_table_procB.east, text width = 1cm, text centered] {\footnotesize{page table}};
+
+				\draw (memory_procA.east) ++(1.5, 2) -- ++(0, -1);
+				\draw (memory_procA.east) ++(1.65, 2) -- ++(0, -1);
+
+				\draw[->, >=stealth, dotted] (memory_physical.north) .. controls (memory_physical.center) and (memory_physical.east) .. (memory_procA.west);
+				\draw[->, >=stealth, dotted] (pt.south) -- ++(0, -0.5) -- ++(1.5, 0) -- ++(0, 3.175) -- (page_table_procA.west);
+			\end{tikzpicture}
+			\caption{Page tables of concurrent processes: process A is active}
+			\label{fig:pagetableconcurrentprocessesprocA}
+		\end{figure}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{memory/.style = {draw, minimum height = 6cm, minimum width = 2cm}}
+				\tikzset{page_table/.style = {draw, minimum height = 1cm, minimum width = 0.5cm}}
+
+				\node[memory] at (0, 0) (memory_physical) {};
+				\node[left = 0 of memory_physical.north west] {\footnotesize{max}};
+				\node[left = 0 of memory_physical.south west] {\footnotesize{0}};
+				\node[below = 0.25 of memory_physical.south] {\footnotesize{physical memory}};
+				\draw[<-, >=stealth] (memory_physical.north) -- ++(0, 0.5) node[right] (pc) {\footnotesize{PC}} node[above = 0.25] {\footnotesize{CPU}};
+
+				\node[right = 2 of pc] (mmu) {\footnotesize{MMU}};
+				\node[below = 0.5 of mmu, text width = 2.5cm, text centered] (pt) {\footnotesize{page table (of currently active process B)}};
+				\draw[->, >=stealth] (mmu.south) -- (pt.north);
+ 
+				\node[memory, right = 5 of memory_physical] (memory_procA) {};
+				\node[below = 0.25 of memory_procA.south] {\footnotesize{process A}};
+				\node[page_table, above = 0.25 of memory_procA.north] (page_table_procA) {}; 
+				\node[right = 0 of page_table_procA.east, text width = 1cm, text centered] {\footnotesize{page table}};
+
+				\node[memory, right = 3 of memory_procA] (memory_procB) {};
+				\node[below = 0.25 of memory_procB.south] {\footnotesize{process B}};
+				\node[page_table, above = 0.25 of memory_procB.north] (page_table_procB) {};
+				\node[right = 0 of page_table_procB.east, text width = 1cm, text centered] {\footnotesize{page table}};
+
+				\draw (memory_procA.east) ++(1.5, 2) -- ++(0, -1);
+				\draw (memory_procA.east) ++(1.65, 2) -- ++(0, -1);
+
+				\draw[->, >=stealth, dotted] (memory_physical.north) .. controls (memory_physical.center) and (memory_physical.east) .. (memory_procB.west);
+				\draw[->, >=stealth, dotted] (pt.south) -- ++(0, -0.5) -- ++(7, 0) -- ++(0, 3.175) -- (page_table_procB.west);
+			\end{tikzpicture}
+			\caption{Page tables of concurrent processes: process B is active}
+			\label{fig:pagetableconcurrentprocessesprocB}
 		\end{figure}
 	}
 }
