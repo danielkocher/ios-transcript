@@ -293,3 +293,36 @@
 		\end{figure}
 	}
 }
+\par{
+	\noindent\underline{Kernel vs. User space}
+	\par{
+		\noindent
+		A perfect operating system cannot crash because of a malicious user program. Is this possible? Yes, in 2009 \textit{sel4} (\textit{secure L4 $\mu$Kernel}) proved this behavior.
+	}
+	\par{
+		\noindent
+		The startup of an operating system is privileged. There exist two options to switch from user to privileged mode (in general):
+		\parskip0pt\begin{enumerate}
+			\item{User program is finished \& executes a privileged instruction}
+			\item{A system call is executed by a user program}
+		\end{enumerate}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{bubble/.style = {draw, circle, text centered}}
+
+				\node[bubble, text width = 4cm] at (0, 0) (contextswitch) {\footnotesize{context switch is done only if a privileged instruction is executed}};
+				\node[bubble, above left = 1 of contextswitch] (user) {\footnotesize{user}};
+				\node[bubble, above right = 1 of contextswitch] (privileged) {\footnotesize{privileged}};
+				\draw[->, >=stealth] (contextswitch.north west) -- (user.south east);
+				\draw[->, >=stealth] (contextswitch.north east) -- (privileged.south west);
+				\draw[<->, >=stealth, dashed] (contextswitch.north east) -- (contextswitch.north west);
+				\node[left = 0.5 of user.west] (instr_t) {\footnotesize{Instructions}};
+				\node[left = 0.5 of contextswitch.west] (mode_t) {\footnotesize{Mode}}; 
+				\node[above = 1 of contextswitch.north] (cpu_t) {\footnotesize{CPU}};
+			\end{tikzpicture}
+			\caption{User and privileged mode}
+			\label{fig:kernelvsuserspace}
+		\end{figure}
+	}
+}
