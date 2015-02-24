@@ -325,4 +325,22 @@
 			\label{fig:kernelvsuserspace}
 		\end{figure}
 	}
+	\par{
+		\noindent
+		Implementing an operating system is a complex task because operating systems are self-referential (\textit{bootstrapping problem} $\Rightarrow$ kernel page table is appended on top of user page table).
+	}
+	\par{
+		\noindent
+		Operating systems do not run concurrently when a user process is executed (a CPU executes instructions one-by-one). Thus the operating system has no control when an instruction of a user process is executed and has to get back the control somehow. There are two options to accomplish this:
+		\parskip0pt\begin{enumerate}
+			\item{
+				Cooperative multitasking: \newline
+				E.g. Win 3.11 or Mac OS 9. Easier to implement but there is no guarantee that the control is ever given back to the operating system as the processes have to give back the control voluntarily.
+			}
+			\item{
+				Preemptive multitasking: \newline
+				Hardware clock parallel to CPU $\Rightarrow$ this clock tells the CPU to switch the program counter. The operating system programs the clock, so it is guaranteed that the operating system gets back in control. Difficult to implement because there can be switches within two instructions $\Rightarrow$ profoundly concurrent.
+			}
+		\end{enumerate}
+	}
 }
