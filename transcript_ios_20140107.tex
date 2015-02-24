@@ -1,0 +1,117 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 20140107 - Introduction to Operating Systems VO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%fancyhdr
+\lhead{IOS VO} 
+\rhead{2014-01-07}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\par{
+	\noindent\underline{Recapitulation: memory of concurrent processes}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}
+			\tikzset{memory_entry/.style = {draw, minimum width = 3cm}}
+			
+			\node[memory_entry, minimum height = 1.5cm] at (0, 0) (code_procA) {\footnotesize{Code}};
+			\node[memory_entry, minimum height = 1cm, above = -0.015 of code_procA] (globals_procA) {\footnotesize{Globals / Strings}};
+			\node[memory_entry, minimum height = 3.5cm, above = -0.015 of globals_procA] (stack_heap_procA) {};
+			\draw[->, >=stealth] (stack_heap_procA.south) -- ++(0, 0.5) node[right] {\footnotesize{Heap}};
+			\draw[->, >=stealth] (stack_heap_procA.north) -- ++(0, -0.5) node[right] {\footnotesize{Stack}};
+			\draw[<-, >=stealth] (code_procA.east) -- ++(0.5, 0) node[right] {\footnotesize{PC}};
+			\node[left = 0 of code_procA.south west] {\footnotesize{0}};
+			\node[left = 0 of stack_heap_procA.north west] {\footnotesize{max}};
+			\node[draw, minimum height = 0.5, minimum width = 0.5, above right = 0.5 of stack_heap_procA.south west] (heap_element) {};
+			\node[below right = 0.5 of code_procA.north west] (code_invis) {};
+			\node[left = 0.5 of globals_procA.south west] (code_invis_way1) {};
+			\node[left = 0.5 of globals_procA.north west] (code_invis_way2) {};
+			\draw[->, >=stealth] (code_invis) .. controls (code_invis_way1) and (code_invis_way2) .. (heap_element.west);
+			\node[below = 0 of code_procA.south] {\footnotesize{process A}};
+
+			\node[memory_entry, minimum height = 1.5cm, right = 4 of code_procA] (code_procB) {\footnotesize{Code}};
+			\node[memory_entry, minimum height = 1cm, above = -0.015 of code_procB] (globals_procB) {\footnotesize{Globals / Strings}};
+			\node[memory_entry, minimum height = 3.5cm, above = -0.015 of globals_procB] (stack_heap_procB) {};
+			\draw[->, >=stealth] (stack_heap_procB.south) -- ++(0, 0.5) node[right] {\footnotesize{Heap}};
+			\draw[->, >=stealth] (stack_heap_procB.north) -- ++(0, -0.5) node[right] {\footnotesize{Stack}};
+			\node[left = 0 of code_procB.south west] {\footnotesize{0}};
+			\node[left = 0 of stack_heap_procB.north west] {\footnotesize{max}};
+			\node[below = 0 of code_procB.south] {\footnotesize{process B}};
+
+			\draw (stack_heap_procA.east) ++(2, 0) -- ++(0, -2);
+			\draw (stack_heap_procA.east) ++(2.1, 0) -- ++(0, -2);
+		\end{tikzpicture}
+		\caption{Concurrent processes and their memory layout}
+		\label{fig:concurrprocsmemlayout}
+	\end{figure}
+}
+
+\par{
+	\noindent
+	Fundamental reason for parallelism/concurrency (parallelism $\not=$ concurrency!): \newline
+	Because the world we are living in consists of lots of parallel processes $\Rightarrow$ real world picture; it is not about convenience! It is also about correctness proofs $\Rightarrow$ to prove that one big program is correct is much more difficult to show than multiple concurrent programs. \newline
+	The ultimate prerequisite to accomplish this: each process has to think he owns the whole machine \& memory.
+}
+
+\par{
+	\noindent
+	Physical memory is:
+	\parskip0pt\begin{enumerate}
+		\item{a set of addresses}
+		\item{content of these }
+	\end{enumerate}
+	Virtual memory is:
+	\parskip0pt\begin{enumerate}
+		\item{a set of addresses}
+	\end{enumerate}
+	Paging: Split virtual and physical memory into 4kB pages (of addresses).
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}
+			\tikzset{memory_entry/.style = {draw, minimum width = 3cm, minimum height = 0.5cm}}
+			\tikzset{page_table_entry/.style = {draw, minimum width = 2cm, minimum height = 0.5cm}}
+
+			\node[memory_entry] at (0, 0) (virtmem_entry1) {};
+			\node[memory_entry, above = -0.015 of virtmem_entry1] (virtmem_entry2) {};
+			\node[draw, minimum width = 3cm, minimum height = 3cm, above = -0.015 of virtmem_entry2] (virtmem_dots) {\footnotesize{\ldots}};
+			\node[memory_entry, above = -0.015 of virtmem_dots] (virtmem_entry3) {};
+			\node[memory_entry, above = -0.015 of virtmem_entry3] (virtmem_entry4) {};
+			\node[below = 0 of virtmem_entry1] (virtmem_t) {\footnotesize{virtual memory}};
+			\draw[<-, >=stealth] (virtmem_entry1.north west) -- ++(-0.5, 0) node[left] {\footnotesize{4kB}};
+			\draw[<-, >=stealth] (virtmem_entry2.north west) -- ++(-0.5, 0) node[left] {\footnotesize{8kB}};
+
+			\node[page_table_entry, right = 2 of virtmem_entry2] (pt_entry1) {};
+			\node[page_table_entry, above = -0.015 of pt_entry1] (pt_entry2) {};
+			\node[draw, minimum width = 2cm, minimum height = 1cm, above = -0.015 of pt_entry2] (pt_dots) {\footnotesize{\ldots}};
+			\node[page_table_entry, above = -0.015 of pt_dots] (pt_entry3) {};
+			\node[page_table_entry, above = -0.015 of pt_entry3] (pt_entry4) {};
+			\node[below = 0 of pt_entry1] (pt_t) {\footnotesize{page table}};
+
+			\node[memory_entry, right = 6 of virtmem_entry1] (physmem_entry1) {};
+			\node[memory_entry, above = -0.015 of physmem_entry1] (physmem_entry2) {};
+			\node[draw, minimum width = 3cm, minimum height = 3cm, above = -0.015 of physmem_entry2] (physmem_dots) {\footnotesize{\ldots}};
+			\node[memory_entry, above = -0.015 of physmem_dots] (physmem_entry3) {};
+			\node[memory_entry, above = -0.015 of physmem_entry3] (physmem_entry4) {};
+			\node[below = 0 of physmem_entry1] (physmem_t) {\footnotesize{physical memory}};
+			\draw[<-, >=stealth] (physmem_entry1.north east) -- ++(0.5, 0) node[right] {\footnotesize{4kB}};
+			\draw[<-, >=stealth] (physmem_entry2.north east) -- ++(0.5, 0) node[right] {\footnotesize{8kB}};
+
+			\foreach \i in {1, 2} {
+				\node[right = 0.5 of virtmem_entry\i] (virtmem_entry\i_invis_right) {};
+				\node[left = 0.5 of pt_entry\i] (pt_entry\i_invis_left) {};
+				\draw[->, >=stealth] (virtmem_entry\i.east) .. controls (virtmem_entry\i_invis_right) and (pt_entry\i_invis_left) .. (pt_entry\i.west);
+			}
+
+			\node[right = 0.5 of pt_entry1] (pt_entry1_invis_right) {};
+			\node[left = 0.5 of physmem_entry3] (physmem_entry3_invis_left) {};
+			\draw[->, >=stealth] (pt_entry1.east) .. controls (pt_entry1_invis_right) and (physmem_entry3_invis_left) .. (physmem_entry3.west);
+
+			\node[right = 0.5 of pt_entry2] (pt_entry2_invis_right) {};
+			\node[left = 0.5 of physmem_entry1] (physmem_entry1_invis_left) {};
+			\draw[->, >=stealth] (pt_entry2.east) .. controls (pt_entry2_invis_right) and (physmem_entry1_invis_left) .. (physmem_entry1.west);
+		\end{tikzpicture}
+		\caption{Mapping virtual $\leftrightarrow$ physical memory}
+		\label{fig:mappingvirtphysmem}
+	\end{figure}
+}
