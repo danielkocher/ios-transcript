@@ -1,0 +1,233 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 20140112 - Introduction to Operating Systems VO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%fancyhdr
+\lhead{IOS VO} 
+\rhead{2014-01-12}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\par{
+	\noindent\underline{Atomic instructions:}
+	\par{
+		\noindent
+		Increment (\texttt{x = x + 1;})/Decrement (\texttt{x = x - 1;}) have to be atomic. Three ways to accomplish this atomicity:
+		\parskip0pt\begin{enumerate}
+			\item{\textit{compare \& swap} (CAS)}
+			\item{\textit{load \& link} (LL)}
+			\item{\textit{store condition} (SC)}
+		\end{enumerate}
+		The memory bus gets locked (implemented in hardware).
+	}
+}
+\par{
+	\noindent\underline{ABA problem:}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}		
+			\node at (0, 0) (time_start) {};
+			\foreach \i in {3, 6, 9}{
+				\node[right = \i of time_start] (time_\i) {};
+			}
+			\node[right = 10 of time_start] (time_end) {};
+
+			\draw[->, >=stealth] (time_start.center) -- (time_end.center) node[right] {\footnotesize{time}};
+			\draw (time_start.north) -- (time_start.south);
+			\foreach \i in {3, 6, 9}{
+				\draw (time_\i.north) -- (time_\i.south);
+			}
+
+			\node[below right = 0.1 and 0.75 of time_start] {\footnotesize{lookup}};
+			\node[above right = 0.1 and 0.5 of time_start] {\footnotesize{A $\rightsquigarrow$ m: A;}};
+
+			\node[below right = 0.1 and 0.65 of time_3] {\footnotesize{no lookup}};
+			\node[above right = 0.1 and 0.5 of time_3] {\footnotesize{B $\rightsquigarrow$ m: B;}};
+
+			\node[below right = 0.1 and 0.75 of time_6] {\footnotesize{lookup}};
+			\node[above right = 0.1 and 0.5 of time_6] {\footnotesize{A $\rightsquigarrow$ m: A;}};
+
+		\end{tikzpicture}
+		\caption{The ABA problem.}
+		\label{fig:abaproblem}
+	\end{figure}
+	\par{
+		\noindent
+		Because of the ABA problem, lots of algorithms of the literature were not used any longer.
+	}
+	\par{
+		\noindent
+		How to avoid the ABA problem:
+		\par{
+			\noindent
+			32-bit addresses; arbitrary 8 bits as version number; remaining 24 bits contain the data. \newline
+			This solution does a good job but does not solve the problem completely because the 8 bit used as version number can overflow (already happened in the computational systems group).
+		}
+	}
+}
+\par{
+	\noindent\underline{Spawn a process (C-like syntax \& semantics):}
+	\begin{lstlisting}[language = C, frame = none]
+	int pid;
+
+	// make a new process; pid is the process identifier
+	pid = fork();
+
+	if(pid < 0)
+		// error
+	else if(pid > 0)
+		// I am the parent process
+	else
+		// I am the child process
+	\end{lstlisting}
+}
+\par{
+	\noindent\underline{Wait for a process (C-like syntax \& semantics):}
+	\begin{lstlisting}[language = C, frame = none]
+	int pid;
+	int status;
+
+	// wait only returns when a child process terminates
+	pid = wait(&status);
+
+	if(pid <= 0)
+		// error or there are not awaited child processes
+	else
+		// the child process pid has terminated with exit status
+	\end{lstlisting}
+}
+\par{
+	\noindent The pendant to \texttt{wait} is the \texttt{exit} system call:
+	\begin{lstlisting}[language = C, frame = none]
+	int status = 0;
+	exit(status);
+	\end{lstlisting}
+}
+\par{
+	\noindent
+	The consequence of using \texttt{wait}, \texttt{exit} and \texttt{fork} is the possible generation of \textit{zombie} processes. \newline
+	If the parent processes exit, these are called \textit{orphans}. The root node adopts all orphans in the hierarchy.
+}
+\par{
+	\noindent\underline{Booting the operating system:}
+	\par{
+		\noindent
+		The BIOS defines how the operating system is loaded into the main memory (RAM). The CPU is a stupid machine which only fetches, decodes and executes instructions one-by-one. At some point of time, \texttt{fork} has to be called but there is not infrastructure available. \newline
+		In the bootstraping process, everything is set up by hand (ready queue, et cetera). The \textit{init} process has pid 1, the \textit{idle} process has pid 0.
+	}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}
+			\node[draw, circle] at (5, 10) (kernel) {\footnotesize{kernel}};
+			\node[left = 2 of kernel] (bios_ram) {\footnotesize{BIOS, RAM}};
+			\draw[->, >=stealth] (kernel.west) -- (bios_ram.east);
+
+			\node[below = 0.25 of bios_ram] (pc) {\footnotesize{pc}};
+			\node[left = 2 of pc] (pc_left_invis) {};
+			\node[left = 0.5 of bios_ram] (bios_ram_left_invis) {};
+			\draw[->, >=stealth] (pc.west) .. controls (pc_left_invis) and (bios_ram_left_invis) .. (bios_ram.west);
+
+			\node[below = 0.25 of pc] (booting) {\footnotesize{booting}};
+			\draw (booting.south) -- ++(0, -0.25) -- ++(-1, 0) -- ++(0, -0.25) node[below, text width = 1cm, text centered] (idle) {\footnotesize{idle pid 0}};
+			\draw (booting.south) -- ++(0, -0.25) -- ++(1, 0) -- ++(0, -0.25) node[below, text width = 1cm, text centered] (init) {\footnotesize{init pid 1}};
+
+			\draw (idle.south) -- ++(0, -0.5) node[below] (idle_below_invis) {};
+			\draw[->] (idle_below_invis.south east) arc (0:360: 2mm);
+
+			\draw (init.south) -- ++(0, -0.5) node[below] (shell) {\footnotesize{shell}};
+			\draw (init.south) ++(0, -0.25) -- ++(1, 0) -- ++(0, -0.25) node[below = 0.2] {\footnotesize{\ldots}};
+		\end{tikzpicture}
+		\caption{The boot process.}
+		\label{fig:bootprocess}
+	\end{figure}
+	\par{
+		\noindent
+		The \texttt{init} process is the parent of all other processes (except the \texttt{idle} process which loops infinitely). When an application is called using the shell, e.g. \texttt{\textgreater ls}, the call is parsed. \newline
+		How can the first process be spawned? \texttt{\textgreater ls\&} (this is the first fork).
+	}
+ }
+ \par{
+ 	\noindent\underline{Virtualization:}
+ 	\par{
+ 		\noindent
+ 		\parskip0pt\begin{itemize}
+ 			\item{system virtualization, e.g. XEN, KVM, \ldots}
+ 			\item{process virtualization, e.g. JVM, \ldots}
+ 		\end{itemize}
+ 	}
+ 	\begin{figure}[H]
+ 		\centering
+ 		\begin{tikzpicture}
+ 			\tikzset{vm/.style = {draw, rounded corners, minimum height = 10cm, minimum width = 4cm}}
+
+ 			\node[vm] (vm1) {};
+ 			\node[vm, right = 0.75 of vm1] (vm2) {};
+ 			\draw (vm1.north east) ++(0.375, -0.25) -- ++(0, -8cm) node (eol_invis) {};
+ 			\node[draw, rounded corners, minimum height = 2cm, minimum width = 10cm, text width = 2cm, text centered, below = 2 of eol_invis] (hypervisor) {\footnotesize{VMM Hypervisor}};
+ 			\node[right = 1 of hypervisor.east] {\footnotesize{kernel}};
+
+ 			\node[below = 0 of vm1.north] (vm1_t) {\footnotesize{VM}};
+ 			\node[below = 0 of vm2.north] (vm2_t) {\footnotesize{VM}};
+
+ 			\draw (vm1.west) ++(-0.25, 0) node[left] (linux) {\footnotesize{Linux}} -- ++(9.25cm, 0) node[right] (osx) {\footnotesize{OS X}};
+ 			\draw[dashed] (vm1.west) ++(-0.25, -0.5) -- ++(9.25cm, 0);
+ 			\draw[->, >=stealth] (vm1.center) ++(0, 0.25) node[above right] {\footnotesize{user}} -- ++(0, -1.25) node[below right] {\footnotesize{user}};
+ 			\draw[->, >=stealth] (vm2.center) ++(0, 0.25) node[above right] {\footnotesize{user}} -- ++(0, -1.25) node[below right] {\footnotesize{user}};
+
+ 			\draw[->, >=stealth] (vm1.south) ++(0, 0.25) node[above] {\footnotesize{trap}} -- ++(0, -1.5);
+ 			\draw[->, >=stealth] (vm2.south) ++(0, 0.25) node[above] {\footnotesize{trap}} -- ++(0, -1.5);
+ 		\end{tikzpicture}
+ 		\caption{Virtualization.}
+ 		\label{fig:virtualization}
+ 	\end{figure}
+ 	\par{
+ 		\noindent
+ 		VMM \ldots Virtual Machine Monitor
+ 	}
+ }
+
+ \clearpage
+ \par{
+ 	\noindent\underline{Self-compiling compiler:}
+ 	\par{
+ 		\noindent
+ 		$C^*$ compiler written in $C^*$: \texttt{cstar.c}.
+ 		\par{
+ 			\noindent
+ 			\texttt{\textgreater gcc cstar.c} $\rightsquigarrow$ \texttt{cstar} (for the x86 architecture) \newline
+ 			\texttt{\textgreater cstar cstar.c} $\rightsquigarrow$ \texttt{cstar1} (DLX, \texttt{cstar $\not=$ cstar1}) \newline
+ 			\texttt{\textgreater cstar1 cstar.c} $\rightsquigarrow$ \texttt{cstar2} (DLX, \texttt{cstar1 $=$ cstar2}) \newline
+ 	}
+ 	\par{
+ 		\noindent\underline{Accessing an array:}
+ 		\par{
+ 			\noindent
+ 			\texttt{$addr(a[i]) = addr(a) + i \cdot sizeof(elem)$}.
+		}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{arrayelem/.style = {draw, minimum height = 1cm, minimum width = 1cm}}
+				\tikzset{arraydata/.style = {draw, minimum height = 1cm, minimum width = 2cm}}
+
+				\node[arrayelem] at (0, 0) (arrayelem_0) {}; 
+				\node[below = 0 of arrayelem_0] (arrayelem_0_t) {\footnotesize{0}};
+				\foreach \i [count = \ii from 0] in {1, 2, 3, 4}{
+					\node[arrayelem, right = -0.015 of arrayelem_\ii] (arrayelem_\i) {};
+					\node[below = 0 of arrayelem_\i] (arrayelem_\i_t) {\footnotesize{\i}};
+				}
+				\draw[<-, >=stealth] (arrayelem_0.north west) -- ++(0, 0.5) node[above] (array_t) {\footnotesize{array}};
+
+				\node[arrayelem, right = 7 of array_t] (a) {\footnotesize{a}};
+				\node[arraydata, right = -0.015 of a] (a_data) {\footnotesize{\ldots}}; 
+				\node[arrayelem, below = -0.015 of a] (b) {\footnotesize{b}};
+				\node[arraydata, right = -0.015 of b] (b_data) {\footnotesize{\ldots}}; 
+				\node[arrayelem, below = -0.015 of b] (c) {\footnotesize{c}};
+				\node[arraydata, right = -0.015 of c] (c_data) {\footnotesize{\ldots}}; 
+				\draw[<-, >=stealth] (a_data.north east) -- ++(0.5, 0.5) node[right] {\footnotesize{obj}};
+			\end{tikzpicture}
+			\caption{Accessing an element of an array.}
+			\label{fig:arrayaccess}
+		\end{figure}
+ 	}
+ }
