@@ -114,4 +114,162 @@
 		\caption{Mapping virtual $\leftrightarrow$ physical memory}
 		\label{fig:mappingvirtphysmem}
 	\end{figure}
+	\par{
+		\noindent
+		Page tables are process-local (each process has its own). On process creation the page table is empty (there is are no mappings of any virtual to any physical addresses). Page frames are organised by a free list $\Rightarrow$ $O(1)$ access and no additional space needed (no overhead) because the pointers of the free list can be stored in the free page frames.
+	}
+	\par{
+		\noindent\newline When a page fault occurs:
+		\parskip0pt\begin{itemize}
+			\item{create mapping $\rightarrow$ resolved by MMU $\rightarrow$ good performance needed because there are lots of requests $\rightarrow$ page table is cached into translation lookaside buffer (TLB) $\rightarrow$ is in RAM (not everything is split into 4kB chunks).}
+			\item{if it is in the code segment: load 4kB from disk into frame.}
+		\end{itemize}
+	}
+	\par{
+		\noindent
+		CR3 register in MMU points to the currently used page table and is used when a process switch is done:
+		\parskip0pt\begin{itemize}
+			\item{set program counter}
+			\item{restore state of new process (registers, et cetera)}
+		\end{itemize}
+	}
+	\par{
+		\noindent\underline{Translation lookaside buffer (TLB):}
+		\par{
+			\noindent
+			Is a fully-associative memory: entry is split into two columns: content \& address (see Figure~\ref{fig:tlborg}). Has about 20 entries for $\frac{2^{32}}{4kB (\text{page size})} = \frac{2^{32}}{2^{12}} = 2^{20}$ page table entries. Thus, there is no one-to-one mapping because this would lead to as much virtual as physical addresses $\Rightarrow$ no external fragmentation because of constant page size (4kB).
+		}
+		\par{
+			\noindent Three ingredients of external fragmentation:
+			\parskip0pt\begin{enumerate}
+				\item{out of order deallocation}
+				\item{contiguity}
+				\item{different page sizes}
+			\end{enumerate}
+		}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\node[draw, minimum height = 2cm, minimum width = 2cm] (address_1) {};
+				\node[draw, minimum height = 2cm, minimum width = 2cm, right = -0.015 of address_1] (content_1) {};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, above = -0.015 of address_1] (address_2) {\footnotesize{$10$}};
+				\node[draw, minimum height = 0.5cm, minimum width = 2cm, above = -0.015 of content_1] (content_2) {\footnotesize{$42$}};
+				\node[draw, minimum height = 2cm, minimum width = 2cm, above = -0.015 of address_2] (address_3) {};
+				\node[draw, minimum height = 2cm, minimum width = 2cm, above = -0.015 of content_2] (content_3) {};
+				\node[above = 0 of address_3] {\footnotesize{address}};
+				\node[above = 0 of content_3] {\footnotesize{content}};
+ 			\end{tikzpicture}
+			\caption{TLB organisation}
+			\label{fig:tlborg}
+		\end{figure}
+		\par{
+			\noindent
+			The operating system asks the TLB if it got address 10. But why in MMU/page table?
+			\parskip0pt\begin{itemize}
+				\item{cache hit: mapping in TLB.}
+				\item{cache miss: mapping is looked up in page table $\Rightarrow$ slow and is stored in TLB after lookup.}
+			\end{itemize}
+		}
+		\par{
+			\noindent\underline{Fully-associative vs. direct-mapped cache:}
+			\par{
+				\noindent
+				In fully-associative caches, when a request is made, the requested address is compared in a directory against all entries in the directory. If the requested address is found (\textit{directory hit}), the corresponding location in the cache is fetched and returned to the processor. Otherwise, a \textit{directory miss} occurs. \newline
+				In direct-mapped caches, lower order line address bits are used to access the directory. Since multiple line addresses map into the same location in the cache directory, the upper line address bits must be compared with the directory address to ensure a directory hit. If a comparison is not valid, the result is a cache miss. The address given to the cache by the processor actually is subdivided into several pieces, each of which has a different role in accessing data.
+			}
+		}
+	}
+}
+\par{
+	\noindent\underline{On-demand paging:}
+	\par{
+		\noindent
+		The straight-forward approach to implement a page table would be a gigantic array. But this could not be stored in memory for every process. The solution have (more or less) constant time and solves the memory problem: a tree structure where the root has children of mini page tables (see Figure~\ref{fig:2leveltree}).
+	}
+}
+\par{
+	\noindent\underline{Prefetching:}
+	\par{
+		\noindent
+		Fetch neighbor entries in page table $\Rightarrow$ exploits the \textit{spatial locality} of code/applications.
+	}
+	\par{
+		\noindent
+		Spatial locality in caches: a whole cache line is loaded. Because of loops and contiguous allocated data structures (arrays, \ldots).
+	}
+	\par{
+		\noindent
+		Temporal locality: it is likely that a cached address is needed in the near future again. This is the reason caches work. There are almost no programs without this property because of loops, variable sharing and functions/methods.
+	}
+}
+\par{
+	\noindent
+	We have perfect spatial isolation of processes. How do we establish interprocess communication? \newline
+	Shared memory: different page table entries of different page tables map to the same memory.
+}
+\par{
+	\noindent\underline{Process vs. Thread}
+	\parskip0pt\begin{itemize}
+		\item{
+			Process:
+			\parskip0pt\begin{itemize}
+				\item{independent program counter}
+				\item{independent registers}
+				\item{independent virtual memory}
+			\end{itemize}
+		}
+		\item{
+			Thread:
+			\parskip0pt\begin{itemize}
+				\item{independent program counter}
+				\item{independent registers}
+				\item{independent stack, everything else is shared.}
+			\end{itemize}
+		}
+	\end{itemize}
+	\par{
+		\noindent
+		Communication between threads is very fast because everything is shared except for the stack. This bad isolation is the reason that most multi-threaded applications are incorrect. The correctness proof of multi-threaded applications is very difficult.
+	}
+}
+\par{
+	\noindent 2 categories of page replacement algorithms:
+	\begin{enumerate}
+		\item{frequency-based}
+		\item{based on the point of time of the access}
+	\end{enumerate}
+}
+\par{
+	\noindent Thrashing:
+	\par{
+		\noindent
+		All processes operating on more memory than physically available $\Rightarrow$ swap-out/-in all the time. 
+	}
+}
+\par{
+	\noindent\underline{Scheduling problem:}
+	\par{
+		\noindent
+		$n$ processes \& all want to run. Fairness is important (no starvation of a single process), e.g. Round Robin, FIFO.
+	}
+	\par{
+		\noindent
+		Scheduler does the process switch. Processes switch their state between \textit{ready} and \textit{blocked} (in the simplest model on a single core system). Ready processes are in a running pool (unsorted set of ready processes, in general).
+	}
+	\par{
+		\noindent
+		Preemptive:
+		\par{
+			\noindent
+			Triggered using hardware interrupts, otherwise the operating system would never get the CPU back from the process because the running process owns the CPU. Fundamental drawback: every code can be interrupted at any point of time $\Rightarrow$ correctness reasoning is difficult because of the complexity.
+		}
+	}
+	\par{
+		\noindent
+		Cooperative:
+		\par{
+			\noindent
+			Easier to implement. Fundamental drawback: if one process is not cooperative, the whole concept is broken.
+		}
+	}
 }
