@@ -261,7 +261,7 @@
     \noindent
     The simplest (but most unintelligent) implementation of a dynamic heap allocator is a so-called \textit{bump pointer allocator}. A bump pointer is a pointer which only counts upwards, never downwards. In this case, there is no \texttt{free} to deallocate because it only grows upwards. However, the implementation of \texttt{malloc} is pretty simple and straigh-forward:
     \begin{verbatim}
-        void* malloc(int s) {
+        void *malloc(int s) {
             LDW 1, 29, 12
             ADD 27, 0, 26
             ADD 26, 26, 1 // R26 = Heap pointer
