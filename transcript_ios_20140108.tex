@@ -1,0 +1,203 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 20140108 - Introduction to Operating Systems VO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%fancyhdr
+\lhead{IOS VO} 
+\rhead{2014-01-08}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\par{
+	\noindent\underline{Multithreading:}
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}
+			\tikzset{code/.style = {text width = 3cm, align = left}}
+
+			\node[code] at (0, 4) (x_decl) {\footnotesize{\texttt{\textbf{int} x;}}};
+			\node[code, below = 0 of x_decl] (x_def) {\footnotesize{\texttt{x = 0;}}};
+			\node[code, below = 0.5 of x_def] (fork) {\footnotesize{\texttt{fork();}}};
+			\node[code, below = 0.5 of fork] (x_incr) {\footnotesize{\texttt{x = x + 1;}}};
+			\draw (x_decl.north west) -- (x_incr.south west);
+			\draw[<-, >=stealth] (fork.south west) ++(0, -0.25) -- ++(-0.5, 0) node[left] (thread1) {\footnotesize{Thread 1}};
+
+			\node[code, right = 2 of x_incr] (x_incr2) {\footnotesize{\texttt{x = x + 1;}}};
+			\draw (x_incr2.south west) -- ++(0, 1);
+			\draw[<-, >=stealth] (x_incr2.north west) ++(0, 0.25) -- ++(-0.5, 0) node[left] (thread2) {\footnotesize{Thread 2}};
+		\end{tikzpicture}
+		\caption{Possible interference when working with multiple threads.}
+		\label{fig:possinterferencemultithreads}
+	\end{figure}	
+	\par{
+		\noindent
+		Figure~\ref{fig:possinterferencemultithreads} shows two executing threads (with the same code of course). Which value has \texttt{x}? You cannot know because of possible race conditions.
+	}
+	\par{
+		\noindent Implementation of the incrementation of \texttt{x}:
+		\parskip0pt\begin{verbatim}
+	LDW 1, 28, -4 // load x into r1, PCs of thread 1 and 2 are here! 
+	ADD 2, 0, 1 // load value 1 into r2
+	ADD 3, 1, 2 // add r2 to r1 (increment x by 1) and store result in r3
+	STW 3, 28, -4 // store r3 (incremented x) back to memory
+    	\end{verbatim}
+	}
+	\par{
+		\noindent
+		The program counter of thread 1, denoted by $pc_{T1}$, comes first, then a context switch occurs (hardware interrupt). Because the registers are stored (and restored after the process executes again), the value of \texttt{x} in thread 1 is not lost after a context switch. \newline
+		Atomic instructions/code parts enable concurrency and the reasoning about the correctness of concurrent applications. \newline
+		Disable interrupts globally before a code part is executed you do not want to be interrupted. \newline
+		Drawbacks:
+		\begin{itemize}
+			\item{This technique does not work in multicore systems.}
+			\item{When the interrupt is not enabled again afterwards, the system is not cooperative anymore.}
+		\end{itemize}
+	}
+
+	\clearpage
+	\par{
+		\noindent
+		We would need a single instruction which reads and writes a variable \texttt{m} (mutex) dependend on the current value of \texttt{m}. $\Rightarrow$ \textit{Test \& Set} paradigm (special machine instruction).
+		\begin{lstlisting}[language = C, frame = none]
+	// these two lines have to be executed atomically!
+	while(m != 0);
+	m = 1;
+
+	// critical section
+
+	m = 0;
+		\end{lstlisting}
+		\texttt{m} \ldots Lock acquire/release. \newline
+		\parskip0pt\begin{itemize}
+			\item{\textit{spin lock}}
+			\item{busy waiting (until the interrupt occurs)}
+		\end{itemize}
+	}
+	\par{
+		\noindent
+		Mutex are not fault tolerant! If \texttt{m} is not reset by another thread, the busy waiting loop burns CPU time forever. So the number of instructions to mutual exclude determines how long the other threads wait busy.
+	}
+
+	\clearpage
+	\par{
+		\noindent Better solution (without a busy waiting loop): Traffic light model
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}[>=stealth', shorten >= 1pt, auto, node distance = 3cm, scale = 1, transform shape]
+				\node[state] (blocked) {Blocked (Red)};
+				\node[state, below = 2 of blocked] (ready) {Ready (Yellow)};
+				\node[state, below = 2 of ready] (running) {Running (Green)};
+				\node[draw, circle, right = 5 of blocked] (m) {\texttt{m}};
+				\node[below = 0 of m, text width = 2cm, text centered] {\footnotesize{FIFO of all threads waiting on \texttt{m}}};
+
+				\path[->]	(blocked) edge[below, bend right] node[left, text width = 2cm, text centered] {\footnotesize{unlock(m) wakeup}} (ready)
+							(ready) edge[below, bend right] node[left] {\footnotesize{scheduler}} (running)
+							(running) edge[above, bend right] node[right, text width = 2cm, text centered] {\footnotesize{cooperative preemptive}} (ready)
+							(running) edge[right, bend right = 75] node[right, text width = 2cm, text centered] {\footnotesize{lock(m) sleep}} (blocked)
+				; 
+				\draw[dotted, <->, >=stealth] (blocked.east) -- (m.west); 
+			\end{tikzpicture}
+			\caption{Traffic light model}
+			\label{fig:trafficlightmodel}
+		\end{figure}
+	}
+	\par{
+		\noindent
+		All threads from the \textit{blocked} list are stuffed into the \textit{ready} queue. For $n$ threads where $1$ holds the lock, we have $(n-1)$ comparisons of \texttt{m}.
+		\begin{lstlisting}[language = C, frame = none]
+	lock(m);
+
+	// critical section
+
+	unlock(m);
+		\end{lstlisting}
+	}
+	\par{
+		\noindent \textit{Thundering herd} effect:
+		\par{
+			\noindent
+			One of the ready threads gets the lock next, all other threads are again in the blocking queue. So only a single thread is (in a fair manner) moved from the blocking to the ready queue.
+		}
+	}
+	\par{
+		\noindent
+		If the ready queue is empty, there is a special instruction (\textit{sleep}) which stops the CPU in hardware.
+	}
+	\par{
+		\noindent\underline{The \textit{sleep} mechanism:}
+		\par{
+			\noindent
+			When \texttt{sleep(500)} is called, the current thread has to sleep for 500ms. Therefore the current CPU ticks + 500ms are stored in a thread-local variable (e.g. \texttt{int64\_t wake\_me\_up\_at}). Each time the timer interrupt is triggered, the current CPU ticks are compared to the value of this variable. If the current CPU ticks is greater or equal than the value of this variable, the corresponding thread is moved to the ready queue (woken up). All sleeping thread are organized in a sleep list, ordered ascending by the value of the \texttt{wake\_me\_up\_at} variable. This reduces the comparison effort because the operating system does not need to check the whole list but only the first $k$ threads in the sleep list (those where the value of the \texttt{wake\_me\_up\_at} variable is less or equal the current ticks).
+		}
+		\par{
+			\noindent
+			\texttt{sleep(500ms)} gives only a lower bound of 500ms but no upper bound. This means that the thread sleep at least 500ms but may sleep longer (see Figure~\ref{fig:sleepmechanism}).
+		}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\tikzset{elem/.style={draw, text width = 3cm, text centered}}
+				\tikzset{brace/.style = {decoration = {brace, mirror, raise = 1ex}, decorate}}
+
+				\node[elem] (wakemeupat) {\footnotesize{\texttt{wake\_me\_up\_at}}};
+				\node[elem, below = -0.015 of wakemeupat] (thread-ptr) {\footnotesize{\texttt{thread\_ptr}}};
+				\node[left = 0.5 of wakemeupat] (sleeplist) {\footnotesize{\texttt{sleep list:}}};
+
+				\draw[->, >=stealth] (sleeplist.south west) ++(0, -2) -- ++(10, 0) node[right] {\footnotesize{time}};
+				\draw (sleeplist.south west) ++(0, -1.75) -- ++(0, -0.5) node (t_left) {};
+				\draw (sleeplist.south west) ++(5, -1.75) -- ++(0, -0.5) node (t_mid) {};
+				\draw (sleeplist.south west) ++(7, -1.75) -- ++(0, -0.5) node (t_right) {};
+
+				\draw[brace] (t_left.center) -- node[below = 0.25, text width = 1cm, text centered] (brace_middle) {\footnotesize{\texttt{sleep(500ms)}}} (t_mid.center);
+				\draw[<-, >=stealth] (t_right.center) ++(0, -0.1) -- ++(0, -0.5) node[below, text width = 4cm, text centered] {\footnotesize{(possible) actual time the thread wakes up/is scheduled again}};
+			\end{tikzpicture}
+			\caption{The \textit{sleep} mechanism.}
+			\label{fig:sleepmechanism}
+		\end{figure}
+	}
+	\par{
+		\noindent\underline{The \textit{idle} process:}
+		\par{
+			\noindent
+			Needed because the ready set/queue should never be empty.
+			\begin{lstlisting}[language = C, frame = none]
+	while(true)
+		hlt; // special halt instruction to stop the CPU
+			\end{lstlisting}
+		}
+	}
+
+	\clearpage
+	\par{
+		\noindent\underline{Time slice dimensioning:}
+		\par{
+			\noindent
+			Nowadays time slices of about 10ms are normal. Tradeoff between bigger and smaller time slices:
+			\parskip0pt\begin{itemize}
+				\item{Bigger time slices: semantics of sleep call gets absurd.}
+				\item{Smaller time slices: precision of sleep call better but the check needs to be done more often (energy inefficient). If the time slice is too short the operating system may even interrupt itself while checking the \texttt{wake\_me\_up\_at} variable.}
+			\end{itemize}
+		}
+		\begin{figure}[H]
+			\centering
+			\begin{tikzpicture}
+				\node[text width = 2cm, text centered] (idling_system) {\footnotesize{Idling system}};
+				
+				\node[right = 0 of idling_system] (time_start) {};
+				\foreach \i [count = \ii from 1] in {2, 4, 6, 8}{
+					\node[right = \i of time_start] (time_\ii) {};
+				}
+				\node[right = 10 of time_start] (time_end) {};
+
+				\draw[->, >=stealth] (time_start.center) -- (time_end.center) node[right] {\footnotesize{time}};
+				\draw (time_start.north) -- (time_start.south);
+				\foreach \i [count = \ii from 1] in {10, 20, 30, 40}{
+					\draw (time_\ii.north) -- (time_\ii.south) node[below] {\footnotesize{\i ms}};
+					\draw[->] (time_\ii.north) ++(140:3mm) arc (220:0:3mm);
+				}
+			\end{tikzpicture}
+			\caption{10ms time slices.}
+			\label{fig:timeslices10ms}
+		\end{figure}
+	}
+}
