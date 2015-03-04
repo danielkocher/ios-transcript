@@ -61,13 +61,13 @@
 
 \par{
     \noindent
-    Wie funktioniert der Zugriff auf den Stack? \newline
-    Wieso wird \texttt{R1, R28, -4} gemacht? \textbf{Latency}.
+    How does the stack access work? \newline
+    Why do we do \texttt{R1, R28, -4}? \textbf{Latency}.
 }
 
 \par{
     \noindent
-    \underline{Implementation von \texttt{void* malloc(int s)}:}
+    \underline{Implementation of \texttt{void* malloc(int s)}:}
     \par{
         \indent\texttt{LDW 1, 29, 12} \newline
         \indent\texttt{ADD 27, 0, 26} \newline
@@ -76,21 +76,21 @@
     \par{
         \noindent
         \texttt{s}: \texttt{R1 = sum[R29 + 12]} \newline
-        Da man in \texttt{C$^*$} keinen Zugriff auf Register hat, muss obiges Verhalten per Assembler implementiert werden. \newline
-        \texttt{malloc} ist in der (g)libc enthalten und ist heutzutage de facto ein Betriebssystemfeature.
+        Because you do not have access to registers in \texttt{C$^*$}, the above behavior has to be implemented in assembler. \newline
+        \texttt{malloc} is pat of the (g)libc and is a de facto feature of operating systems nowadays.
     }
     \par{
-    	\noindent\underline{Implementation von \texttt{int getchar()}:} \newline
+    	\noindent\underline{Implementation of \texttt{int getchar()}:} \newline
         \indent\texttt{RDC 0, 0, 27}
     }
     \par{
-    	\noindent\underline{Implementation von \texttt{void putchar(int c)}:} \newline
+    	\noindent\underline{Implementation of \texttt{void putchar(int c)}:} \newline
         \indent\texttt{LDW 1, 29, 12} \newline
         \indent\texttt{WRC 0, 0, 1}
     }
     \par{
     	\noindent
-    	Liest den n{\"a}chsten Character aus einem Stream. \newline
+    	Reads the next character from the stream. \newline
     	\texttt{R27 = getchar();} \newline
     	Streams: \texttt{stdin}, \texttt{stdout}, \texttt{stderr}
     }
